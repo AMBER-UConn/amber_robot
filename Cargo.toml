@@ -6,4 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-openrr = "0.0.6"
+rosrust = "0.9"
+rosrust_msg = "0.1"
+k = "0.28.0"
+openrr-planner = "0.0.6"
