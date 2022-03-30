@@ -8,11 +8,11 @@ REQUIRED_PACKAGES=(
 )
 
 echo "----------------------------- Checking for updates first... -----------------------------"
-sudo apt --yes -qq update
-echo "----------------------------- Upgrading packages........... -----------------------------"
-sudo apt --yes -qq upgrade
-echo "----------------------------- Autoremoving old packages.... -----------------------------"
-sudo apt -qq autoremove
+sudo apt -qq update
+# echo "----------------------------- Upgrading packages........... -----------------------------"
+# sudo apt --yes -qq upgrade
+# echo "----------------------------- Autoremoving old packages.... -----------------------------"
+# sudo apt -qq autoremove
 
 function checkOrInstall() {
     REQUIRED_PKG=$1
