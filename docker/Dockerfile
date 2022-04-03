@@ -1,6 +1,6 @@
 FROM rust:1.59
-FROM ubuntu:18.04
-FROM ros:foxy
+
+FROM ros:noetic
 
 RUN apt update
 RUN apt install cargo -y

@@ -6,14 +6,14 @@ networks:
 
 services:
   # ros-master:
-  #   image: ros:foxy
+  #   image: ros:noetic
   #   command: stdbuf -o L roscore
   #   networks:
   #     - ros
   #   restart: always
 
   # talker:
-  #   image: ros:foxy-ros-core
+  #   image: ros:noetic-ros-core
   #   depends_on:
   #     - ros-master
   #   environment:
@@ -24,7 +24,7 @@ services:
   #   restart: always
 
   # listener:
-  #   image: ros:foxy-ros-core
+  #   image: ros:noetic-ros-core
   #   depends_on:
   #     - ros-master
   #   environment:
@@ -35,7 +35,7 @@ services:
   #   restart: always
 
   # viz:
-  #   image: osrf/ros:foxy-desktop-full
+  #   image: osrf/ros:noetic-desktop-full
   #   profiles: ['gui']
   #   container_name: ros_visualizer
   #   depends_on:
@@ -61,15 +61,15 @@ services:
   #   command: rqt
 
   rust-client: 
-    # profiles: ['no-gui', 'gui']
+    profiles: ['no-gui', 'gui']
     container_name: rust_client
     build:
       dockerfile: ./rust-client/Dockerfile
     networks:
       - ros
     environment:
-      # - "ROS_MASTER_URI=http://ros-master:11311"
-      - "ROSRUST_MSG_PATH=/opt/ros/foxy/share/std_msgs/"
+      - "ROS_MASTER_URI=http://localhost:11311"
+      - "ROSRUST_MSG_PATH=/opt/ros/noetic/share/std_msgs/"
     # depends_on:
     #   - ros-master
     volumes:
