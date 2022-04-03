@@ -5,77 +5,54 @@ networks:
     driver: bridge
 
 services:
-  # ros-master:
-  #   image: ros:noetic
-  #   command: stdbuf -o L roscore
-  #   networks:
-  #     - ros
-  #   restart: always
+  ros-master:
+    image: ros:noetic
+    command: stdbuf -o L roscore
+    networks:
+      - ros
+    restart: always
 
-  # talker:
-  #   image: ros:noetic-ros-core
-  #   depends_on:
-  #     - ros-master
-  #   environment:
-  #     - "ROS_MASTER_URI=http://ros-master:11311"
-  #   command: stdbuf -o L rostopic pub /chatter std_msgs/String "hello" -r 1
-  #   networks:
-  #     - ros
-  #   restart: always
-
-  # listener:
-  #   image: ros:noetic-ros-core
-  #   depends_on:
-  #     - ros-master
-  #   environment:
-  #     - "ROS_MASTER_URI=http://ros-master:11311"
-  #   command: stdbuf -o L rostopic echo /chatter
-  #   networks:
-  #     - ros
-  #   restart: always
-
-  # viz:
-  #   image: osrf/ros:noetic-desktop-full
-  #   profiles: ['gui']
-  #   container_name: ros_visualizer
-  #   depends_on:
-  #     - ros-master
-  #   networks:
-  #     - ros
-  #   environment:
-  #     - "ROS_MASTER_URI=http://ros-master:11311"
-  #     - "DISPLAY"
-  #     - "QT_X11_NO_MITSHM=1" #fix some QT bugs
-  #   #share your user to the container in order to access your x11
-  #   user: ${UGID}
-     
-  #   volumes: 
-  #     #share your x11 socket and permissions to the container
-  #     - /tmp/.X11-unix:/tmp/.X11-unix:rw
-  #     - /etc/group:/etc/group:ro
-  #     - /etc/passwd:/etc/passwd:ro
-  #     - /etc/shadow:/etc/shadow:ro
-  #     - /etc/sudoers:/etc/sudoers:ro
-  #     - /etc/sudoers.d:/etc/sudoers.d:ro
-  #     # - /home/<your_user>:/home/<your_user>:rw #share your home with write permissions
-  #   command: rqt
-
-  rust-client: 
-    profiles: ['no-gui', 'gui']
-    container_name: rust_client
-    build:
-      dockerfile: ./rust-client/Dockerfile
+  viz:
+    image: osrf/ros:noetic-desktop-full
+    profiles: ['gui']
+    container_name: ros_visualizer
+    depends_on:
+      - ros-master
     networks:
       - ros
     environment:
-      - "ROS_MASTER_URI=http://localhost:11311"
+      - "ROS_MASTER_URI=http://ros-master:11311"
+      - "DISPLAY"
+      - "QT_X11_NO_MITSHM=1" #fix some QT bugs
+    #share your user to the container in order to access your x11
+    user: ${UGID}
+     
+    volumes: 
+      #share your x11 socket and permissions to the container
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /etc/group:/etc/group:ro
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/shadow:/etc/shadow:ro
+      - /etc/sudoers:/etc/sudoers:ro
+      - /etc/sudoers.d:/etc/sudoers.d:ro
+      # - /home/<your_user>:/home/<your_user>:rw #share your home with write permissions
+    command: rqt
+
+  rust-ros: 
+    profiles: ['no-gui', 'gui']
+    image: kalinkochnev/amber_robot:rust_client-1.0
+    container_name: rust-ros
+    networks:
+      - ros
+    environment:
+      - "ROS_MASTER_URI=http://ros-master:11311"
       - "ROSRUST_MSG_PATH=/opt/ros/noetic/share/std_msgs/"
-    # depends_on:
-    #   - ros-master
+    depends_on:
+      - ros-master
     volumes:
       - type: bind
         source: ./rust-client
         target: /docker-rust-client
 
-    # restart: always
+    restart: always
 

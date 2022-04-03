@@ -14,7 +14,7 @@ fn main() {
     let mut count = 0;
 
     // Create object that maintains 10Hz between sleep requests
-    let rate = rosrust::rate(10.0);
+    let rate = rosrust::rate(1.0);
 
     // Breaks when a shutdown signal is sent
     while rosrust::is_ok() {
