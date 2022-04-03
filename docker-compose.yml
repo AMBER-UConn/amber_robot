@@ -5,60 +5,77 @@ networks:
     driver: bridge
 
 services:
-  ros-master:
-    image: ros:kinetic-ros-core
-    profiles: ['no-gui', 'gui']
-    command: stdbuf -o L roscore
-    networks:
-      - ros
-    restart: always
+  # ros-master:
+  #   image: ros:foxy
+  #   command: stdbuf -o L roscore
+  #   networks:
+  #     - ros
+  #   restart: always
 
-  talker:
-    image: ros:kinetic-ros-core
-    profiles: ['no-gui', 'gui']
-    depends_on:
-      - ros-master
-    environment:
-      - "ROS_MASTER_URI=http://ros-master:11311"
-    command: stdbuf -o L rostopic pub /chatter std_msgs/String "hello" -r 1
-    networks:
-      - ros
-    restart: always
+  # talker:
+  #   image: ros:foxy-ros-core
+  #   depends_on:
+  #     - ros-master
+  #   environment:
+  #     - "ROS_MASTER_URI=http://ros-master:11311"
+  #   command: stdbuf -o L rostopic pub /chatter std_msgs/String "hello" -r 1
+  #   networks:
+  #     - ros
+  #   restart: always
 
-  listener:
-    image: ros:kinetic-ros-core
-    profiles: ['no-gui', 'gui']
-    depends_on:
-      - ros-master
-    environment:
-      - "ROS_MASTER_URI=http://ros-master:11311"
-    command: stdbuf -o L rostopic echo /chatter
-    networks:
-      - ros
-    restart: always
+  # listener:
+  #   image: ros:foxy-ros-core
+  #   depends_on:
+  #     - ros-master
+  #   environment:
+  #     - "ROS_MASTER_URI=http://ros-master:11311"
+  #   command: stdbuf -o L rostopic echo /chatter
+  #   networks:
+  #     - ros
+  #   restart: always
 
-  viz:
-    image: osrf/ros:kinetic-desktop-full
-    profiles: ['gui']
-    container_name: ros_visualizer
-    depends_on:
-      - ros-master
-    networks:
-      - ros
-    environment:
-      - "ROS_MASTER_URI=http://ros-master:11311"
-      - "DISPLAY"
-      - "QT_X11_NO_MITSHM=1" #fix some QT bugs
-    #share your user to the container in order to access your x11
-    user: ${UGID}
+  # viz:
+  #   image: osrf/ros:foxy-desktop-full
+  #   profiles: ['gui']
+  #   container_name: ros_visualizer
+  #   depends_on:
+  #     - ros-master
+  #   networks:
+  #     - ros
+  #   environment:
+  #     - "ROS_MASTER_URI=http://ros-master:11311"
+  #     - "DISPLAY"
+  #     - "QT_X11_NO_MITSHM=1" #fix some QT bugs
+  #   #share your user to the container in order to access your x11
+  #   user: ${UGID}
      
-    volumes: 
-      #share your x11 socket and permissions to the container
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - /etc/group:/etc/group:ro
-      - /etc/passwd:/etc/passwd:ro
-      - /etc/shadow:/etc/shadow:ro
-      - /etc/sudoers:/etc/sudoers:ro
-      - /etc/sudoers.d:/etc/sudoers.d:ro
-      - /home/<your_user>:/home/<your_user>:rw #share your home with write permissions
-    command: rqt
+  #   volumes: 
+  #     #share your x11 socket and permissions to the container
+  #     - /tmp/.X11-unix:/tmp/.X11-unix:rw
+  #     - /etc/group:/etc/group:ro
+  #     - /etc/passwd:/etc/passwd:ro
+  #     - /etc/shadow:/etc/shadow:ro
+  #     - /etc/sudoers:/etc/sudoers:ro
+  #     - /etc/sudoers.d:/etc/sudoers.d:ro
+  #     # - /home/<your_user>:/home/<your_user>:rw #share your home with write permissions
+  #   command: rqt
+
+  rust-client: 
+    # profiles: ['no-gui', 'gui']
+    container_name: rust_client
+    build:
+      dockerfile: ./rust-client/Dockerfile
+    networks:
+      - ros
+    environment:
+      # - "ROS_MASTER_URI=http://ros-master:11311"
+      - "ROSRUST_MSG_PATH=/opt/ros/foxy/share/std_msgs/"
+    # depends_on:
+    #   - ros-master
+    volumes:
+      - type: bind
+        source: ./rust-client
+        target: /docker-rust-client
+
+    # restart: always
+
