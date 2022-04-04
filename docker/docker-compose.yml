@@ -7,7 +7,21 @@ networks:
 services:
   ros-master:
     image: ros:noetic
+    container_name: ROS
     command: stdbuf -o L roscore
+    networks:
+      - ros
+    restart: always
+
+  listener:
+    profiles: ['no-gui', 'gui']
+    image: ros:noetic
+    container_name: ros_listener
+    depends_on:
+      - ros-master
+    environment:
+      - "ROS_MASTER_URI=http://ros-master:11311"
+    command: stdbuf -o L rostopic echo /chatter
     networks:
       - ros
     restart: always
@@ -41,7 +55,7 @@ services:
   rust-ros: 
     profiles: ['no-gui', 'gui']
     image: kalinkochnev/amber_robot:rust_client-1.0
-    container_name: rust-ros
+    container_name: rust_ros
     networks:
       - ros
     environment:
@@ -51,7 +65,7 @@ services:
       - ros-master
     volumes:
       - type: bind
-        source: ./rust-client
+        source: ../rust-client
         target: /docker-rust-client
 
     restart: always
