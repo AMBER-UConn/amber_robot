@@ -2,7 +2,7 @@
 
 A group of students at the University of Connecticut were selected as finalists in the annual NASA Big Idea Challenge ([see our submission](https://bigidea.nianet.org/wp-content/uploads/2022-BIG-Idea-Challenge-Finalist-Team-Synopses.pdf) or the [video](https://youtu.be/4zF1PQumCn8))
 
-# Project setup
+# Project Setup
 1. Download Git - [Linux](https://git-scm.com/download/linux), [macOS](https://git-scm.com/download/mac), [Windows](https://git-scm.com/download/win)
 2. Download and Setup Docker
    - [macOS](https://docs.docker.com/desktop/mac/install/) - Install Docker Desktop
