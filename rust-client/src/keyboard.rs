@@ -1,42 +1,43 @@
+use std::collections::HashMap;
 use crate::gamepad::{Button, Gamepad};
 
 
-pub struct keyboard{
+pub struct Keyboard{
     button_map: HashMap<char, Button>, 
     state: HashMap<char, bool>,
 }
 
-impl keyboard{
-    pub fn convert_char(&self, c:char)-> Button{
+impl Keyboard{
+    pub fn convert_char(&self, c: &char)-> Button{
         match self.button_map.get(c) {
-            Some(button) => return button,
+            Some(button) => return button.clone(),
             None => return Button::UNDEFINED,
         }
     }
     
-    fn new(keymap:HashMap<char, Button>)->keyboard{
-        return keyboard{
+    fn new(keymap:HashMap<char, Button>)->Keyboard{
+        return Keyboard{
             button_map:keymap,
             state: HashMap::new(),
         }
     }
 }
 
-impl Gamepad for keyboard{
+impl Gamepad for Keyboard{
     
     fn send(&self){
-        #todo
+        //todo
     }
 
     fn recieve(&self){
-        #todo
+        //todo
     }
 
     
 }
 
-pub default_buttons()->HashMap<char, Button>{
-    let buttons = HashMap::new();
+pub fn default_buttons()->HashMap<char, Button>{
+    let mut buttons = HashMap::new();
     buttons.insert('w', Button::FORWARD);
     buttons.insert('a', Button::LEFT);
     buttons.insert('s', Button::BACKWARD);
@@ -44,13 +45,19 @@ pub default_buttons()->HashMap<char, Button>{
     buttons.insert('<', Button::CCW);
     buttons.insert('>', Button::CW);
     buttons.insert('t', Button::MODE_SHIFT);
+
+    return buttons;
 }
 
-#[cfg(tests)]
+#[cfg(test)]
 mod tests{
+    use crate::keyboard::Keyboard;
+    use crate::keyboard::default_buttons;
+    use crate::gamepad::Button;
+
     #[test]
     fn test_button_conversion(){
-        let kb = keyboard::new(default_buttons());
-        assert_eq!(kb.convert_char('w'), Button::FORWARD);
+        let kb = Keyboard::new(default_buttons());
+        assert_eq!(kb.convert_char(&'w'), Button::FORWARD);
     }
 }

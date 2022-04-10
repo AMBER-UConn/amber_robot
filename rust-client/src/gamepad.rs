@@ -4,6 +4,7 @@ pub trait Gamepad{
 
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Button{
     FORWARD,
     BACKWARD,

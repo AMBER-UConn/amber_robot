@@ -1,7 +1,9 @@
 #!/bin/bash
 
 . /opt/ros/$ROS_DISTRO/setup.sh
-cargo run
+cargo test
+# if you want to run the code do
+# cargo run
 
 # To run the release version
 # cargo build --release

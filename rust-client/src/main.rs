@@ -1,4 +1,6 @@
 use rosrust;
+pub mod gamepad;
+pub mod keyboard;
 
 mod msg {
     rosrust::rosmsg_include!(std_msgs/String);
