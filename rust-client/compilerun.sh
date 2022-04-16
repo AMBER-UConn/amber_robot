@@ -2,6 +2,8 @@
 
 . /opt/ros/$ROS_DISTRO/setup.sh
 cargo test
+
+tail -f /dev/null # this keeps the rust container running indefinitely
 # if you want to run the code do
 # cargo run
 

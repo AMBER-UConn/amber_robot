@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 rosrust_msg = "0.1.4" 
 rosrust = "0.9.8"
+termios = "0.3.3"
 # openrr-planner = "0.0.6" # path planning libraru
 # urdf-viz = "0.36.0" # URDF file visualizer
 # k = "0.28.0" # kinematics library
