@@ -6,6 +6,7 @@ networks:
 
 services:
   ros-master:
+    platform: linux/arm64
     image: ros:noetic
     container_name: ROS
     command: stdbuf -o L roscore
@@ -14,7 +15,8 @@ services:
     restart: always
 
   listener:
-    profiles: ['no-gui', 'gui']
+    platform: linux/arm64
+    profiles: [ 'no-gui', 'gui' ]
     image: ros:noetic
     container_name: ros_listener
     depends_on:
@@ -27,6 +29,7 @@ services:
     restart: always
 
   viz:
+    platform: linux/arm64
     image: osrf/ros:noetic-desktop-full
     profiles: ['gui']
     container_name: ros_visualizer
@@ -40,8 +43,8 @@ services:
       - "QT_X11_NO_MITSHM=1" #fix some QT bugs
     #share your user to the container in order to access your x11
     user: ${UGID}
-     
-    volumes: 
+
+    volumes:
       #share your x11 socket and permissions to the container
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - /etc/group:/etc/group:ro
@@ -52,9 +55,12 @@ services:
       # - /home/<your_user>:/home/<your_user>:rw #share your home with write permissions
     command: rqt
 
-  rust-ros: 
+  rust-ros:
+    platform: linux/arm64
     profiles: ['no-gui', 'gui']
-    image: kalinkochnev/amber_robot:rust_client-1.0
+    # image: kalinkochnev/amber_robot:rust_client-1.0
+    build:
+      dockerfile: Dockerfile
     container_name: rust_ros
     networks:
       - ros
@@ -69,4 +75,3 @@ services:
         target: /docker-rust-client
 
     restart: always
-
