@@ -1,4 +1,7 @@
-use std::io::Write;
+use std::io::Read;
+use std::io::{Write, Stdin};
+use std::iter::{Iterator};
+use rosrust;
 use termios::tcsetattr;
 use termios::Termios;
 use std::collections::HashMap;
@@ -47,14 +50,19 @@ pub struct KeyboardSender {
 }
 
 impl KeyboardSender {
-    fn new(topic_name: String) -> KeyboardSender {
+
+    pub fn new(topic_name: String) -> KeyboardSender {
         return KeyboardSender {
             kb_stream_on: Arc::new(AtomicBool::new(false)),
             topic_name 
         };
     }
 
-    fn start_kb_stream(&mut self) {
+    pub fn send_message(&self, msg: &str) {
+        
+    }
+
+    pub fn start_kb_stream(&mut self) {
         // https://github.com/openrr/openrr/blob/main/arci-gamepad-keyboard/src/lib.rs
 
         // WIP (work in progress)
@@ -66,21 +74,34 @@ impl KeyboardSender {
         new_termios.c_lflag &= !(termios::ICANON | termios::ECHO); // no echo and no canonical mode
         tcsetattr(stdin, termios::TCSANOW, &new_termios).unwrap(); 
 
-        let stdout = std::io::stdout();
+        // let stdout = std::io::stdout();
         let mut reader = std::io::stdin();
-        stdout.lock().flush().unwrap();
-        drop(stdout);
-
-        rosrust::init(&self.topic_name);
+        // stdout.lock().flush().unwrap();
+        // drop(stdout);
 
         self.kb_stream_on = Arc::new(AtomicBool::new(true));
-        std::thread::spawn(|| {
-            while rosrust::is_ok() {
-                let mut buffer = [0; 1];
-                reader.read_exact(buffer)
-                // TODO
-            }
-        });
+        let topic_name = self.topic_name.clone();
+
+        // std::thread::spawn(move || {
+        rosrust::init(topic_name.as_str());
+        let chatter_pub = rosrust::publish(topic_name.as_str(), 100).unwrap();
+
+        let rate = rosrust::rate(10.0);
+
+        while rosrust::is_ok() {
+            let mut keybuff = [0; 1]; // Read one key at a time
+            reader.read(&mut keybuff).unwrap();
+            let key_pressed = keybuff[0];
+            
+            let mut msg = rosrust_msg::std_msgs::String::default();
+            msg.data = format!("Keys pressed: {:?}", &key_pressed );
+            chatter_pub.send(msg).unwrap();
+            rate.sleep();
+        }
+        println!("ROS IS NOT OKAY IT IS HURT!");
+        tcsetattr(stdin, termios::TCSANOW, &termios).unwrap(); // reset the stdin to
+
+        // });
     }
 }
 

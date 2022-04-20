@@ -21,7 +21,7 @@ services:
       - ros-master
     environment:
       - "ROS_MASTER_URI=http://ros-master:11311"
-    command: stdbuf -o L rostopic echo /chatter
+    command: stdbuf -o L rostopic echo /kbstream
     networks:
       - ros
     restart: always
@@ -53,6 +53,9 @@ services:
     command: rqt
 
   rust-ros: 
+    stdin_open: true
+    tty: true
+    
     profiles: ['no-gui', 'gui']
     image: kalinkochnev/amber_robot:rust_client-1.0
     container_name: rust_ros
