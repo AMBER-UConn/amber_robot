@@ -40,7 +40,7 @@ services:
       - "QT_X11_NO_MITSHM=1" #fix some QT bugs
     #share your user to the container in order to access your x11
     user: ${UGID}
-     
+
     volumes: 
       #share your x11 socket and permissions to the container
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
@@ -52,7 +52,7 @@ services:
       # - /home/<your_user>:/home/<your_user>:rw #share your home with write permissions
     command: rqt
 
-  rust-ros: 
+  rust-ros:
     profiles: ['no-gui', 'gui']
     image: kalinkochnev/amber_robot:rust_client-1.0
     container_name: rust_ros
