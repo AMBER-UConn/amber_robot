@@ -30,7 +30,12 @@ services:
 
   viz:
     platform: linux/arm64
-    image: osrf/ros:noetic-desktop-full
+    build:
+      context: .
+      dockerfile: Dockerfile-rust-ros
+      args:
+      - NODE_ENV=local   
+    # image: osrf/ros:noetic-desktop-full
     profiles: ['gui']
     container_name: ros_visualizer
     depends_on:
@@ -60,7 +65,10 @@ services:
     profiles: ['no-gui', 'gui']
     # image: kalinkochnev/amber_robot:rust_client-1.0
     build:
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile-rust-ros
+      args:
+      - NODE_ENV=local
     container_name: rust_ros
     networks:
       - ros
