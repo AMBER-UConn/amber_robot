@@ -58,7 +58,7 @@ services:
   rust-ros:
     platform: linux/arm64
     profiles: ['no-gui', 'gui']
-    # image: kalinkochnev/amber_robot:rust_client-1.0
+    #image: kalinkochnev/amber_robot:rust_client-1.0
     build:
       dockerfile: Dockerfile
     container_name: rust_ros
