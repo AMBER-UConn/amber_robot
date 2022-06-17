@@ -72,3 +72,10 @@ def setup_sensorless(axis):
 #         odrv0.axis0.motor.config.current_lim = 2 * odrv0.axis0.config.sensorless_ramp.current
 #         odrv0.axis0.sensorless_estimator.config.pm_flux_linkage = 5.51328895422 / (NUM_POLES * MOTOR_KV)
 #         odrv0.axis0.config.enable_sensorless_mode = True
+
+CAN_BAUD_RATE = 500000
+def setup_can(odrive, axes):
+    odrive.can.config.baud_rate = CAN_BAUD_RATE
+    for ax_id, ax in enumerate(axes):
+        ax.config.can.node_id = ax_id
+    odrive.save_configuration()
