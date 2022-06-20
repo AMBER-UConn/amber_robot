@@ -1,0 +1,9 @@
+[package]
+name = "rustodrive"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+socketcan = "1.7.0" #for communication with the odrive

@@ -5,9 +5,13 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[workspace] # this is so we can create libraries within our project
+
 [dependencies]
 rosrust_msg = "0.1.4" 
 rosrust = "0.9.8"
+rustodrive = { path = "rustodrive" }
+
 # openrr-planner = "0.0.6" # path planning libraru
 # urdf-viz = "0.36.0" # URDF file visualizer
 # k = "0.28.0" # kinematics library
