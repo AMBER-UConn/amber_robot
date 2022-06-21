@@ -1,4 +1,4 @@
-use socketcan::{CANSocket, CANFrame};
+use socketcan::{CANSocket, CANFrame, CANFilter};
 use crate::constants::{ODriveMessage, AxisState};
 
 struct Encoder;
@@ -72,5 +72,14 @@ pub fn test_motor_calib() {
     match socket.write_frame(&frame) {
         Ok(()) => println!("Frame was sent!"),
         Err(error) => panic!("an error occurred with sending the can command")
+    }
+
+    // Wait for response frame
+    loop {
+        // socket.set_filter(&[CANFilter::new(axis << 5 | command, (1 << 8) - 1).unwrap()]);
+
+        let response = socket.read_frame().unwrap();
+        println!("command {:#?}", response);
+        // println!("The command was received successfully!");
     }
 }

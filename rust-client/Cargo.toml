@@ -8,8 +8,8 @@ edition = "2021"
 [workspace] # this is so we can create libraries within our project
 
 [dependencies]
-rosrust_msg = "0.1.4" 
-rosrust = "0.9.8"
+# rosrust_msg = "0.1.4" 
+# rosrust = "0.9.8"
 rustodrive = { path = "rustodrive" }
 
 # openrr-planner = "0.0.6" # path planning libraru
