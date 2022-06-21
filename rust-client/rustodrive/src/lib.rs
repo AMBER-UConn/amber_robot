@@ -5,6 +5,7 @@ use std::thread;
 
 pub mod can_wrapper;
 pub mod constants; 
+pub mod can_manager;
 
 #[cfg(test)]
 mod tests {

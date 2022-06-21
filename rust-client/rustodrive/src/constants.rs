@@ -1,5 +1,6 @@
 /// Documentation: https://docs.odriverobotics.com/v/latest/can-protocol.html#messages
-pub enum ODriveMessage {
+#[derive(Copy, Clone)]
+pub enum ODriveCommand {
     Heartbeat = 0x001,
     EStop = 0x002,
     MotorError = 0x003,
@@ -30,7 +31,7 @@ pub enum ODriveMessage {
 }
 
 /// Documentation: https://docs.odriverobotics.com/v/latest/fibre_types/com_odriverobotics_ODrive.html?highlight=axisstate#ODrive.Axis.AxisState
-pub enum AxisState {
+pub enum ODriveAxisState {
     Undefined = 0x0,
     Idle = 0x1,
     StartupSequence = 0x2,

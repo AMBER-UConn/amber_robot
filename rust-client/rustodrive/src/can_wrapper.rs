@@ -1,10 +1,9 @@
-use socketcan::{CANSocket, CANFrame, CANFilter};
-use crate::constants::{ODriveMessage, AxisState};
+use socketcan::{CANSocket, CANFrame};
+use crate::constants::{ODriveCommand, ODriveAxisState};
 
 struct Encoder;
 impl Encoder {
     fn get_error() { unimplemented!() }
-
     fn get_count() { unimplemented!() }
     fn get_estimate() { unimplemented!() }
     fn set_linear_count() { unimplemented!() }
@@ -64,8 +63,8 @@ pub fn test_motor_calib() {
     let socket = CANSocket::open("can1").expect("Could not open CAN at can1");
 
     let axis = 0x0;
-    let command = ODriveMessage::SetAxisRequestedState as u32;
-    let state = AxisState::FullCalibrationSequence as u8;
+    let command = ODriveCommand::SetAxisRequestedState as u32;
+    let state = ODriveAxisState::FullCalibrationSequence as u8;
     let frame = CANFrame::new((axis << 5 | command), &[state, 0, 0, 0, 0, 0, 0, 0], false, false ).unwrap();
     println!("attempting to calibrate motor");
 
