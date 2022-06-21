@@ -1,4 +1,5 @@
 use socketcan::{CANSocket, CANFrame};
+use crate::constants::{ODriveMessage, AxisState};
 
 struct Encoder;
 impl Encoder {
@@ -59,6 +60,17 @@ impl ODrive {
     fn has_heartbeat() { unimplemented!() }
 }
 
-fn main() {
+pub fn test_motor_calib() {
+    let socket = CANSocket::open("can1").expect("Could not open CAN at can1");
 
+    let axis = 0x0;
+    let command = ODriveMessage::SetAxisRequestedState as u32;
+    let state = AxisState::FullCalibrationSequence as u8;
+    let frame = CANFrame::new((axis << 5 | command), &[state, 0, 0, 0, 0, 0, 0, 0], false, false ).unwrap();
+    println!("attempting to calibrate motor");
+
+    match socket.write_frame(&frame) {
+        Ok(()) => println!("Frame was sent!"),
+        Err(error) => panic!("an error occurred with sending the can command")
+    }
 }

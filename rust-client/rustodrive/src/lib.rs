@@ -3,8 +3,8 @@ use std::sync::mpsc::{Sender, Receiver};
 use std::sync::mpsc;
 use std::thread;
 
-mod can_wrapper;
-mod constants; 
+pub mod can_wrapper;
+pub mod constants; 
 
 #[cfg(test)]
 mod tests {
