@@ -22,7 +22,7 @@ struct Axis {
     encoder: Encoder,
 }
 
-struct Motor {}
+struct Motor;
 
 impl Motor {
     fn get_error() { unimplemented!() }
