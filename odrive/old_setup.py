@@ -78,4 +78,4 @@ def setup_can(odrive, axes):
     odrive.can.config.baud_rate = CAN_BAUD_RATE
     for ax_id, ax in enumerate(axes):
         ax.config.can.node_id = ax_id
-    odrive.save_configuration()
+    odrive.save_configuration() 
