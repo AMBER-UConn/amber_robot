@@ -56,7 +56,7 @@ impl ODrive {
     fn reboot() { unimplemented!() }
     fn get_vbus_voltage() { unimplemented!() }
     fn clear_errors() { unimplemented!() }
-    fn has_heartbeat() { unimplemented!() }
+    fn has_heartbeat() { }
 }
 
 pub fn test_motor_calib() {

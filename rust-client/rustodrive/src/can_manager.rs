@@ -1,30 +1,53 @@
 use std::collections::HashMap;
 use std::sync::mpsc::{Sender, Receiver};
 
+use socketcan::CANSocket;
+
 use crate::constants::ODriveCommand;
 
+
+trait CANThreadSender {
+    /// This passes a message to the CANManager
+    fn send_to_manager(msg: ODriveMessage);
+
+    /// This waits for a response from the CANManager and returns the result
+    fn receive_from_manager() -> ODriveResponse;
+
+    /// This returns the send portion of the communication channel to the CANManager
+    /// This thread ---> CANManager
+    fn to_manager() -> Sender<ODriveMessage>;
+
+    /// This returns the receive portion of the communication channel from the CANManager
+    /// This thread <--- CANManager
+    fn from_manager() -> Receiver<ODriveResponse>;
+}
 // TODO make an error type
 pub struct CANManager {
-    thread_receiver: Receiver<ODriveMessage>,
+    mpsc_receiver: Receiver<ODriveMessage>,
     thread_senders: HashMap<usize, Sender<ODriveResponse>>,
 
-    waiting: Vec<ODriveMessage>
+    waiting: Vec<ODriveMessage>,
+    socket: CANSocket,
 }
 
 impl CANManager {
-    pub fn new(receiver: Receiver<ODriveMessage>, senders: HashMap<usize, Sender<ODriveResponse>>) -> Self {
+    pub fn new(can_device: &str, receiver: Receiver<ODriveMessage>, senders: HashMap<usize, Sender<ODriveResponse>>) -> Self {
+        // Initialize CANSocket
+        let socket = CANSocket::open(can_device).expect("Could not open CAN at can1");
+
         Self {
-            thread_receiver: receiver,
+            mpsc_receiver: receiver,
             thread_senders: senders,
-            waiting: vec![]
+            waiting: vec![],
+            socket
         }
     }
 
-    fn send_commands(&self) {
-
+    fn send_to_CAN(&self) {
+        
     }
 
-    fn receive_commands(&self) {
+    fn receive_from_CAN(&self) {
 
     }
 
@@ -51,4 +74,11 @@ impl ODriveMessage {
     }
 }
 
-pub struct ODriveResponse {}
+pub enum ODriveError {
+    FailedToSend,
+}
+
+pub enum ODriveResponse {
+    Ok([u8; 8]),
+    Err(ODriveError) 
+}
