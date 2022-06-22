@@ -1,9 +1,8 @@
-pub mod messages;
-pub mod commands; 
 pub mod canproxy;
+pub mod commands;
+pub mod messages;
 pub mod odrivegroup;
 pub mod threads;
-
 
 #[cfg(test)]
 mod tests {

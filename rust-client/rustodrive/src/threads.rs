@@ -1,7 +1,6 @@
-use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc::{Receiver, Sender};
 
 use crate::messages::{ODriveMessage, ODriveResponse};
-
 
 pub trait CANThreadCommunicator {
     /// This passes a message to the CANManager

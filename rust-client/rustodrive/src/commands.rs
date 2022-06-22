@@ -43,5 +43,5 @@ pub enum ODriveAxisState {
     EncoderDirFind = 0xA,
     Homing = 0xB,
     EncoderHallPolarityCalib = 0xC,
-    EncoderHallPhaseCalib = 0xD
+    EncoderHallPhaseCalib = 0xD,
 }
