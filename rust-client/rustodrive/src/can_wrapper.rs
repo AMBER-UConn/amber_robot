@@ -1,5 +1,7 @@
+use std::sync::mpsc::{Sender, Receiver};
+
 use socketcan::{CANSocket, CANFrame};
-use crate::constants::{ODriveCommand, ODriveAxisState};
+use crate::{constants::{ODriveCommand, ODriveAxisState}, can_manager::{ODriveMessage, ODriveResponse, CANThreadCommunicator}};
 
 struct Encoder;
 impl Encoder {
@@ -48,16 +50,29 @@ impl Motor {
 
 }
 
-pub struct ODrive;
-impl ODrive {
-    pub fn new() {}
-    fn start_anticogging() { unimplemented!() }
-    fn start_calibration() { unimplemented!() }
+pub struct ODriveGroup<'a> {
+    axis_ids: &'a [usize],
+    can_send: Sender<ODriveMessage>,
+    can_rcv: Receiver<ODriveResponse>
+}
+impl<'a> ODriveGroup<'a> {
+    pub fn new(axis_ids: &[usize], can_send: Sender<ODriveMessage>, can_rcv: Receiver<ODriveResponse>) -> ODriveGroup {
+        ODriveGroup {
+            axis_ids,
+            can_send,
+            can_rcv,
+        }
+    }
+}
 
-    fn reboot() { unimplemented!() }
-    fn get_vbus_voltage() { unimplemented!() }
-    fn clear_errors() { unimplemented!() }
-    fn has_heartbeat() { }
+impl<'a> CANThreadCommunicator for ODriveGroup<'a> {
+    fn to_manager(&self) -> &Sender<ODriveMessage> {
+        &self.can_send
+    }
+
+    fn from_manager(&self) -> &Receiver<ODriveResponse> {
+        &self.can_rcv
+    }
 }
 
 pub fn test_motor_calib() {

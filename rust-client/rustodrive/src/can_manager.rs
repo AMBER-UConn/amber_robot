@@ -1,25 +1,34 @@
 use std::collections::HashMap;
-use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc::{Sender, Receiver, SendError};
 
 use socketcan::CANSocket;
 
 use crate::constants::ODriveCommand;
 
 
-trait CANThreadSender {
+pub trait CANThreadCommunicator {
     /// This passes a message to the CANManager
-    fn send_to_manager(msg: ODriveMessage);
+    fn send_to_manager(&self, msg: ODriveMessage) {
+        // take the message and send it over the channel
+        let can_send = self.to_manager();
+        match can_send.send(msg) {
+            Ok(()) => {},
+            Err(error) => panic!("Lost connection to CANManager thread: \n{}", error)
+        }
+    }
 
     /// This waits for a response from the CANManager and returns the result
-    fn receive_from_manager() -> ODriveResponse;
+    fn receive_from_manager(&self) -> ODriveResponse {
+
+    }
 
     /// This returns the send portion of the communication channel to the CANManager
     /// This thread ---> CANManager
-    fn to_manager() -> Sender<ODriveMessage>;
+    fn to_manager(&self) -> &Sender<ODriveMessage>;
 
     /// This returns the receive portion of the communication channel from the CANManager
     /// This thread <--- CANManager
-    fn from_manager() -> Receiver<ODriveResponse>;
+    fn from_manager(&self) -> &Receiver<ODriveResponse>;
 }
 // TODO make an error type
 pub struct CANManager {

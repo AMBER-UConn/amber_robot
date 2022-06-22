@@ -1,4 +1,4 @@
-use rustodrive::{can_manager::{CANManager, ODriveResponse, ODriveMessage}, can_wrapper::ODrive};
+use rustodrive::{can_manager::{CANManager, ODriveResponse, ODriveMessage}, can_wrapper::ODriveGroup};
 use std::{sync::mpsc::{channel, Sender, Receiver}, collections::HashMap};
 
 type AxisSenders = HashMap<usize, Sender<ODriveResponse>>;
@@ -34,7 +34,7 @@ fn setup_can() {
         let manager_receiver = main_receiver;
         let manager_sender = can_man_clone;
 
-        let odrive = ODrive::new();
+        let odrive = ODriveGroup::new();
     });
 
     // let (thread_senders, thread_receivers) = gen_thread_comms(AXIS_IDs);
