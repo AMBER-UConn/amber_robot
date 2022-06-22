@@ -3,9 +3,9 @@ use std::sync::mpsc::{Receiver, Sender};
 use socketcan::{CANFrame, CANSocket};
 
 use crate::{
+    commands::{ODriveAxisState, ODriveCommand},
     messages::{ODriveMessage, ODriveResponse},
-    threads::CANThreadCommunicator, 
-    commands::{ODriveCommand, ODriveAxisState},
+    threads::CANThreadCommunicator,
 };
 
 pub struct ODriveGroup<'a> {

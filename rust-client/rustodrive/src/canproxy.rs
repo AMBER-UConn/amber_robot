@@ -68,3 +68,4 @@ impl CANProxy {
     /// get the channel for a particular access to respond to
     fn thread_channel(&self, thread_id: usize) {}
 }
+

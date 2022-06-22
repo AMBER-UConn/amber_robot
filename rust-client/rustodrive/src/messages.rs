@@ -1,10 +1,11 @@
 use crate::commands::ODriveCommand;
 
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct ODriveMessage {
-    thread_id: usize,
-    axis_id: usize,
-    command: ODriveCommand,
-    data: [u8; 8],
+    pub thread_id: usize,
+    pub axis_id: usize,
+    pub command: ODriveCommand,
+    pub data: [u8; 8],
 }
 
 impl ODriveMessage {
@@ -13,10 +14,13 @@ impl ODriveMessage {
     }
 }
 
+#[derive(Clone, PartialEq, Debug)]
 pub enum ODriveError {
     FailedToSend,
 }
 
+
+#[derive(Clone, PartialEq, Debug)]
 pub enum ODriveResponse {
     Ok([u8; 8]),
     Err(ODriveError),

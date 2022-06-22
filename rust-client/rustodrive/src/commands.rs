@@ -1,5 +1,5 @@
 /// Documentation: https://docs.odriverobotics.com/v/latest/can-protocol.html#messages
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum ODriveCommand {
     Heartbeat = 0x001,
     EStop = 0x002,
