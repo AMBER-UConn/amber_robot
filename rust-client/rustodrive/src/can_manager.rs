@@ -9,8 +9,9 @@ use crate::constants::ODriveCommand;
 pub trait CANThreadCommunicator {
     /// This passes a message to the CANManager
     fn send_to_manager(&self, msg: ODriveMessage) {
-        // take the message and send it over the channel
         let can_send = self.to_manager();
+
+        // take the message and send it over the channel
         match can_send.send(msg) {
             Ok(()) => {},
             Err(error) => panic!("Lost connection to CANManager thread: \n{}", error)
@@ -18,8 +19,17 @@ pub trait CANThreadCommunicator {
     }
 
     /// This waits for a response from the CANManager and returns the result
+    /// 
+    /// This is responsible for returning any errors related to invalid commands
+    /// and or any errors that occur during the odrive's command execution
     fn receive_from_manager(&self) -> ODriveResponse {
+        // wait for the response from the thread and return it
+        let can_recv = self.from_manager();
 
+        match can_recv.recv() {
+            Ok(response) => return response,
+            Err(error) => panic!("Lost connection to CANManager thread: \n{}", error)
+        }
     }
 
     /// This returns the send portion of the communication channel to the CANManager
