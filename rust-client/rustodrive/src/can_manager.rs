@@ -24,14 +24,14 @@ trait CANThreadSender {
 // TODO make an error type
 pub struct CANManager {
     mpsc_receiver: Receiver<ODriveMessage>,
-    thread_senders: HashMap<usize, Sender<ODriveResponse>>,
+    thread_senders: Sender<ODriveResponse>,
 
     waiting: Vec<ODriveMessage>,
     socket: CANSocket,
 }
 
 impl CANManager {
-    pub fn new(can_device: &str, receiver: Receiver<ODriveMessage>, senders: HashMap<usize, Sender<ODriveResponse>>) -> Self {
+    pub fn new(can_device: &str, receiver: Receiver<ODriveMessage>, senders: Sender<ODriveResponse>) -> Self {
         // Initialize CANSocket
         let socket = CANSocket::open(can_device).expect("Could not open CAN at can1");
 

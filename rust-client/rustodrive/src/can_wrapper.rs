@@ -48,8 +48,9 @@ impl Motor {
 
 }
 
-struct ODrive;
+pub struct ODrive;
 impl ODrive {
+    pub fn new() {}
     fn start_anticogging() { unimplemented!() }
     fn start_calibration() { unimplemented!() }
 
