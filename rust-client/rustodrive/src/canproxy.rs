@@ -5,9 +5,15 @@ use std::thread::JoinHandle;
 use crate::cansocket::CANSocket;
 use crate::messages::{ODriveMessage, ODriveResponse};
 
+type ThreadConnection = (JoinHandle<()>, Sender<ODriveResponse>);
+
+pub enum ProxyError {
+    ThreadFailedJoin
+}
+
 pub struct CANProxy {
     mpsc_channel: (Sender<ODriveMessage>, Receiver<ODriveMessage>),
-    thread_connections: HashMap<usize, Sender<ODriveResponse>>,
+    thread_connections: HashMap<usize, ThreadConnection>,
 
     awaiting_response: Vec<ODriveMessage>,
     socket: CANSocket,
@@ -29,9 +35,7 @@ impl CANProxy {
         }
     }
 
-    pub fn register<T>(&mut self, thread: T) -> JoinHandle<()>
-    where
-        T: FnOnce(Sender<ODriveMessage>, Receiver<ODriveResponse>) + std::marker::Send + 'static,
+    pub fn register<F>(&mut self, func: F) where F: FnOnce(Sender<ODriveMessage>, Receiver<ODriveResponse>) + std::marker::Send + 'static,
     {
         // Thread <--- CANManager sends ODriveResponse
         let (thread_sender, thread_receiver) = channel::<ODriveResponse>();
@@ -39,19 +43,33 @@ impl CANProxy {
 
         // Give the proxy the ability to read from threads
         // and send to the threads
-        let mut max_id = match self.get_max_thread_id() {
+        let max_id = match self.max_thread_id() {
             None => 0,
-            Some(val) => val
+            Some(val) => val + 1
         };
-        self.thread_connections.insert(max_id, thread_sender);
 
         // Give the thread the ability to send to the proxy
         // and receive from the proxy
-        std::thread::spawn(|| thread(send_to_proxy, thread_receiver))
+        let thread_handle = std::thread::spawn(|| func(send_to_proxy, thread_receiver));
+        
+        // Add the thread and keep track of it
+        self.thread_connections.insert(max_id, (thread_handle, thread_sender));
+    }
+
+    pub fn unregister(&mut self, thread_id: &usize) -> Result<(), ProxyError> {
+        if self.thread_connections.contains_key(thread_id) {
+            let (thread_handle, _sender) = self.thread_connections.remove(thread_id).unwrap();
+            match thread_handle.join() {
+                Err(_e) => return Err(ProxyError::ThreadFailedJoin),
+                Ok(()) => return Ok(())
+            }
+        } else {
+            panic!("Cannot unregister thread ID that doesn't exist")
+        }
     }
 
     /// Get the max thread ID that is being tracked
-    fn get_max_thread_id(&self) -> Option<usize> {
+    fn max_thread_id(&self) -> Option<usize> {
         return self.thread_connections.keys().max().cloned();
     }
 
@@ -70,9 +88,24 @@ impl CANProxy {
 
 #[cfg(test)]
 mod tests {
+    use std::thread::JoinHandle;
     use crate::cansocket::CANSocket;
+    use super::CANProxy;
 
+    #[test]
     fn test_register_thread() {
+        let mut can_proxy = CANProxy::new("fakecan");
+
+        for i in (0..3) {
+            can_proxy.register(|send_to_proxy, thread_receiver| {})
+        }
+        assert_eq!(can_proxy.thread_connections.len(), 3);
         
+        can_proxy.unregister(&1);
+        can_proxy.register(|send, receive| {});
+
+        // Check that the max_id = 3 and the length is 3
+        assert_eq!(can_proxy.thread_connections.len(), 3);
+        assert_eq!(can_proxy.max_thread_id().unwrap(), 3);
     }
 }
