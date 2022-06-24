@@ -2,8 +2,7 @@ use std::collections::HashMap;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread::JoinHandle;
 
-use socketcan::CANSocket;
-
+use crate::cansocket::CANSocket;
 use crate::messages::{ODriveMessage, ODriveResponse};
 
 pub struct CANProxy {
@@ -69,3 +68,11 @@ impl CANProxy {
     fn thread_channel(&self, thread_id: usize) {}
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::cansocket::CANSocket;
+
+    fn test_register_thread() {
+        
+    }
+}

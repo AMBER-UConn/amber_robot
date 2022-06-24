@@ -5,5 +5,11 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+mock-socket = []
+
 [dependencies]
 socketcan = "1.7.0" #for communication with the odrive
+
+[dev-dependencies]
+rustodrive = { path = ".", features = ["mock-socket"] }
