@@ -3,37 +3,16 @@ use std::sync::mpsc::{Receiver, Sender};
 use socketcan::{CANFrame, CANSocket};
 
 use crate::{
-    commands::{ODriveAxisState, ODriveCommand},
-    messages::{ODriveMessage, ODriveResponse},
-    threads::CANThreadCommunicator,
+    commands::{self, ODriveAxisState},
 };
 
-pub struct ODriveGroup<'a> {
-    axis_ids: &'a [usize],
-    can_send: Sender<ODriveMessage>,
-    can_rcv: Receiver<ODriveResponse>,
-}
-impl<'a> ODriveGroup<'a> {
-    pub fn new(
-        axis_ids: &[usize],
-        can_send: Sender<ODriveMessage>,
-        can_rcv: Receiver<ODriveResponse>,
-    ) -> ODriveGroup {
-        ODriveGroup {
-            axis_ids,
-            can_send,
-            can_rcv,
-        }
-    }
+pub struct ODriveGroup {
+    axis_ids: &'static [usize],
 }
 
-impl<'a> CANThreadCommunicator for ODriveGroup<'a> {
-    fn get_sender(&self) -> &Sender<ODriveMessage> {
-        &self.can_send
-    }
-
-    fn get_receiver(&self) -> &Receiver<ODriveResponse> {
-        &self.can_rcv
+impl ODriveGroup {
+    pub fn new() -> Self {
+        todo!()
     }
 }
 
@@ -41,7 +20,7 @@ pub fn test_motor_calib() {
     let socket = CANSocket::open("can1").expect("Could not open CAN at can1");
 
     let axis = 0x0;
-    let command = ODriveCommand::SetAxisRequestedState as u32;
+    let command = commands::Write::SetAxisRequestedState as u32;
     let state = ODriveAxisState::FullCalibrationSequence as u8;
     let frame = CANFrame::new(
         axis << 5 | command,

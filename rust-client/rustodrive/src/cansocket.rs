@@ -1,19 +1,7 @@
-/// A macro that conditionally runs code depending on the feature that is enabled.
-/// This is useful when you want to "duck-type" one struct with another for testing
-/// purposes
-/// https://stackoverflow.com/a/72744251/10521417
-macro_rules! cfg_match {
-    ( other => {$($tt:tt)*} ) => ( $($tt)* );
-    ( $cfg:meta => $expansion:tt $(, $($rest:tt)+)? ) => (
-        #[cfg($cfg)]
-        cfg_match! { other => $expansion }
-        $($(
-            #[cfg(not($cfg))]
-            cfg_match! { other => $rest }
-        )?)?
-    );
-} use cfg_match;
-use socketcan::CANSocketOpenError;
+
+use std::io;
+use socketcan::{CANSocketOpenError, CANFrame};
+use crate::cfg_match;
 
 cfg_match! {
     feature = "mock-socket" => {
@@ -23,6 +11,14 @@ cfg_match! {
         impl CANSocket {
             pub fn open(ifname: &str) -> Result<Self, CANSocketOpenError> {
                 Ok(CANSocket{})
+            }
+
+            pub fn write_frame(&self, frame: &CANFrame) -> io::Result<()> {
+                Ok(())
+            }
+
+            pub fn read_frame(&self) -> io::Result<CANFrame> {
+                Ok(CANFrame::new(0, &[0], false, false).unwrap())
             }
         }   
     },
