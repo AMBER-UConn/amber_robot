@@ -10,6 +10,12 @@ mock-socket = []
 
 [dependencies]
 socketcan = "1.7.0" #for communication with the odrive
+rand = "0.8.5"
 
 [dev-dependencies]
 rustodrive = { path = ".", features = ["mock-socket"] }
+criterion = "0.3.5"
+
+[[bench]]
+name = "rustodrive-bench"
+harness = false
