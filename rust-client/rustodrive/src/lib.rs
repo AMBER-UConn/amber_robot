@@ -1,5 +1,3 @@
-use threads::ReadWriteCANThread;
-
 pub mod canproxy;
 pub(crate) mod cansocket;
 pub mod commands;
@@ -12,9 +10,13 @@ pub(crate) mod threads;
 pub(crate) mod tests {
     use crate::{
         messages::{ODriveMessage, ODriveResponse},
-        threads::{ReadWriteCANThread},
+        threads::ReadWriteCANThread,
     };
-    use std::sync::mpsc::{channel, Receiver, Sender};
+    use std::sync::{
+        atomic::AtomicBool,
+        mpsc::{channel, Receiver, Sender},
+        Arc,
+    };
 
     pub(crate) struct ThreadStub {
         pub thread_id: &'static str,
@@ -24,7 +26,7 @@ pub(crate) mod tests {
     }
 
     impl ThreadStub {
-        pub fn new(thread_name: &'static str) -> Self {
+        pub fn new(thread_name: &'static str, threads_alive: Arc<AtomicBool>) -> Self {
             let (thread_requester, proxy_receiver) = channel::<ODriveMessage>();
             let (proxy_sender, thread_receiver) = channel::<ODriveResponse>();
 
@@ -35,7 +37,8 @@ pub(crate) mod tests {
                 rw_communicator: ReadWriteCANThread::new(
                     thread_name,
                     thread_requester,
-                    thread_receiver
+                    thread_receiver,
+                    threads_alive,
                 ),
             }
         }

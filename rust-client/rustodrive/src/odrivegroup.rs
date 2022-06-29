@@ -1,5 +1,3 @@
-use std::sync::mpsc::{Receiver, Sender};
-
 use socketcan::{CANFrame, CANSocket};
 
 use crate::{
