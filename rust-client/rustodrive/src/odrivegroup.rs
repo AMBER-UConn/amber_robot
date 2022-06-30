@@ -1,4 +1,6 @@
 use socketcan::{CANFrame, CANSocket};
+use crate::commands::ODriveCommand;
+use crate::messages::ODriveCANFrame;
 
 use crate::{
     commands::{self, ODriveAxisState},
@@ -11,36 +13,6 @@ pub struct ODriveGroup {
 impl ODriveGroup {
     pub fn new() -> Self {
         todo!()
-    }
-}
-
-pub fn test_motor_calib() {
-    let socket = CANSocket::open("can1").expect("Could not open CAN at can1");
-
-    let axis = 0x0;
-    let command = commands::Write::SetAxisRequestedState as u32;
-    let state = ODriveAxisState::FullCalibrationSequence as u8;
-    let frame = CANFrame::new(
-        axis << 5 | command,
-        &[state, 0, 0, 0, 0, 0, 0, 0],
-        false,
-        false,
-    )
-    .unwrap();
-    println!("attempting to calibrate motor");
-
-    match socket.write_frame(&frame) {
-        Ok(()) => println!("Frame was sent!"),
-        Err(error) => panic!("an error occurred with sending the can command"),
-    }
-
-    // Wait for response frame
-    loop {
-        // socket.set_filter(&[CANFilter::new(axis << 5 | command, (1 << 8) - 1).unwrap()]);
-
-        let response = socket.read_frame().unwrap();
-        println!("command {:#?}", response);
-        // println!("The command was received successfully!");
     }
 }
 
