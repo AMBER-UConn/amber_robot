@@ -10,7 +10,7 @@ edition = "2021"
 [dependencies]
 # rosrust_msg = "0.1.4" 
 # rosrust = "0.9.8"
-rustodrive = { path = "rustodrive" }
+rustodrive = { path = "rustodrive", features=["mock-socket"] }
 
 # openrr-planner = "0.0.6" # path planning libraru
 # urdf-viz = "0.36.0" # URDF file visualizer

@@ -184,6 +184,10 @@ impl CANProxy {
         proxy_responder.send(response).expect(&format!("Proxy cannot reach thread {}", thread_name));
     }
 
+    pub fn is_alive(&self) -> &Arc<AtomicBool> {
+        return &self.threads_alive;
+    }
+
     /// Notify all the threads that they need to stop and then wait for them to do so
     /// Returns thread Error if any single thread fails to stop
     pub fn stop(&mut self) -> std::thread::Result<()> {
