@@ -139,7 +139,11 @@ impl CANProxy {
         // to avoid blocking
         for request in receiver.try_iter() {
             match self.socket.write_frame(&request.msg.to_can()) {
-                Ok(_) => self.listeners.push(request),
+                Ok(_) => {
+                    println!("sent: {:?}", &request);
+
+                    self.listeners.push(request);
+                },
                 Err(_) => self.respond(
                     request.thread_name,
                     Err(ODriveError::FailedToSend),
@@ -164,9 +168,12 @@ impl CANProxy {
             Err(_) => return,
         };
 
+
         // Find the message that is waiting for a response and send it back
         match self.listener_index(&can_response) {
             Some(index) => {
+                println!("response matched with smth from odrive {:?}", can_response);
+
                 let waiting = self.listeners.remove(index);
                 self.respond(waiting.thread_name, Ok(can_response))
             }

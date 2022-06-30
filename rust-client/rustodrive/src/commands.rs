@@ -4,7 +4,6 @@ back_to_enum! {
     #[derive(Copy, Clone, PartialEq, Debug)]
     pub enum Read {
         Heartbeat = 0x001,
-        EStop = 0x002,
         MotorError = 0x003,
         EncoderError = 0x004,
         SensorlessError = 0x005,
@@ -26,6 +25,8 @@ impl Read {
 back_to_enum! {
     #[derive(Copy, Clone, PartialEq, Debug)]
     pub enum Write {
+        EStop = 0x002,
+
         SetAxisNodeID = 0x006,
         SetAxisRequestedState = 0x007,
         // SetAxisStartupConfig **Not yet implemented in ODrive according to documentation**
