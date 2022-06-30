@@ -3,7 +3,7 @@ use socketcan::CANFrame;
 use crate::commands::ODriveCommand;
 use crate::commands;
 
-
+pub type ODriveResponse = Result<ODriveCANFrame, ODriveError>;
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct ODriveCANFrame {
     pub axis: u32,
@@ -73,11 +73,6 @@ pub enum ODriveError {
     FailedToSend,
 }
 
-#[derive(Clone, PartialEq, Debug)]
-pub enum ODriveResponse {
-    Ok(ODriveCANFrame),
-    Err(ODriveError),
-}
 
 #[cfg(test)]
 mod tests {

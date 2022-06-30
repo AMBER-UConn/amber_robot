@@ -248,7 +248,7 @@ mod tests {
         let threads_running = Arc::new(AtomicBool::new(true));
         let thread = ThreadStub::new("test", threads_running.clone());
 
-        let response = ODriveResponse::Err(ODriveError::FailedToSend);
+        let response = Err(ODriveError::FailedToSend);
 
         thread.proxy_sender.send(response.clone());
         let response_received = thread.rw_communicator.proxy_to_thread();

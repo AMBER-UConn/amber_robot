@@ -142,7 +142,7 @@ impl CANProxy {
                 Ok(_) => self.listeners.push(request),
                 Err(_) => self.respond(
                     request.thread_name,
-                    ODriveResponse::Err(ODriveError::FailedToSend),
+                    Err(ODriveError::FailedToSend),
                 ),
             }
         }
@@ -168,7 +168,7 @@ impl CANProxy {
         match self.listener_index(&can_response) {
             Some(index) => {
                 let waiting = self.listeners.remove(index);
-                self.respond(waiting.thread_name, ODriveResponse::Ok(can_response))
+                self.respond(waiting.thread_name, Ok(can_response))
             }
             None => {}
         }
@@ -303,10 +303,10 @@ mod tests {
         // the mock-socket feature should return the same message sent in as the response
         for resp in response.iter() {
             match resp {
-                ODriveResponse::Ok(resp_can_frame) => {
+                Ok(resp_can_frame) => {
                     assert_eq!(requests.contains(resp_can_frame), true);
                 }
-                ODriveResponse::Err(_) => {},
+                Err(_) => {},
             }
         }
             
