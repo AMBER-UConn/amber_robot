@@ -2,8 +2,13 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 #[cfg(feature = "mock-socket")]
 fn bench_can_proxy(c: &mut Criterion) {
-
-    use std::{sync::{mpsc::channel, Arc, atomic::{AtomicBool, Ordering}}, time::{Duration, Instant}};
+    use std::{
+        sync::{
+            atomic::{AtomicBool, Ordering},
+            Arc,
+        },
+        time::Instant,
+    };
 
     use rustodrive::{
         canproxy::CANProxy,
@@ -12,7 +17,7 @@ fn bench_can_proxy(c: &mut Criterion) {
     };
 
     let mut can_proxy = CANProxy::new("fakecan");
-    
+
     c.bench_function("send request", |b| {
         b.iter_custom(|iters| {
             const num_messages: usize = 10000;
@@ -43,7 +48,6 @@ fn bench_can_proxy(c: &mut Criterion) {
 
 #[cfg(not(feature = "mock-socket"))]
 fn bench_can_proxy() {}
-
 
 criterion_group!(benches, bench_can_proxy);
 criterion_main!(benches);

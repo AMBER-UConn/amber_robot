@@ -177,7 +177,7 @@ impl CANProxy {
             };
 
             // Then stop and wait for all the threads that were registered
-            match proxy.stop_registered() {
+            match proxy.join_registered() {
                 Ok(()) => return Ok(proxy),
                 Err(e) => return Err(e),
             }
@@ -222,11 +222,9 @@ impl CANProxy {
         return self.threads_alive.load(Ordering::SeqCst);
     }
 
-    /// Notify all the threads that they need to stop and then wait for them to do so
+    /// Wait for all threads to stop
     /// Returns thread Error if any single thread fails to stop
-    pub fn stop_registered(&mut self) -> std::thread::Result<()> {
-        self.threads_alive.store(false, Ordering::SeqCst);
-
+    pub fn join_registered(&mut self) -> std::thread::Result<()> {
         for thread in self.threads.drain() {
             let (_name, (handle, _sender)) = thread;
             match handle.join() {

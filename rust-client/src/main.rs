@@ -1,7 +1,9 @@
-use std::{time::Duration};
-use rustodrive::{messages::ODriveCANFrame, commands::{Read, ODriveCommand}, canproxy::CANProxy};
+use std::error::Error;
 
-fn setup_can() {
+use rustodrive::{messages::ODriveCANFrame, commands::{Read, ODriveCommand}, canproxy::CANProxy};
+use signal_hook::{consts::SIGINT, iterator::Signals};
+
+fn can_testing() -> Result<(), Box<dyn Error>> {
     let mut can_proxy = CANProxy::new("can1");
 
     can_proxy.register_rw("thread1", |can_read_write| {
@@ -20,16 +22,20 @@ fn setup_can() {
             println!("response: {:?}", res);
         }
     });
-    let stop_all = can_proxy.begin();
 
+    let stop_all = can_proxy.begin();
     
-    std::thread::sleep(Duration::new(10, 0));
-    
+    let mut signals = Signals::new(&[SIGINT])?;    
+    for sig in signals.forever() {
+        println!("\nQuitting the program {:?}", sig);
+        break;
+    }
+
     stop_all().unwrap();
-    println!("all done!")
+    println!("all done!");
+    Ok(())
 }
 
 fn main() {
-    setup_can();
-    // test_motor_calib();
+    can_testing();
 }
