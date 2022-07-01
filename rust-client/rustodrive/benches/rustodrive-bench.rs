@@ -3,6 +3,8 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 #[cfg(feature = "mock-socket")]
 fn bench_can_proxy(c: &mut Criterion) {
 
+    use std::{sync::{mpsc::channel, Arc, atomic::{AtomicBool, Ordering}}, time::{Duration, Instant}};
+
     use rustodrive::{
         canproxy::CANProxy,
         commands::{ODriveCommand, Write},
@@ -10,24 +12,33 @@ fn bench_can_proxy(c: &mut Criterion) {
     };
 
     let mut can_proxy = CANProxy::new("fakecan");
-    can_proxy.register_rw("thread 1", |can_read_write| {
-        while can_read_write.check_alive() {
-            can_read_write.request(ODriveCANFrame {
-                axis: 1,
-                cmd: ODriveCommand::Write(Write::SetInputVelocity),
-                data: [0; 8],
-            });
-        }
-        println!("blah");
-    });
+    
     c.bench_function("send request", |b| {
-        b.iter(|| {
-            can_proxy.process_messages();
+        b.iter_custom(|iters| {
+            const num_messages: usize = 10000;
+            let is_done = Arc::new(AtomicBool::new(false));
+            let is_done_clone = is_done.clone();
+
+            can_proxy.register_rw("thread 1", move |can_read_write| {
+                let can_frame = black_box(ODriveCANFrame {
+                    axis: 1,
+                    cmd: ODriveCommand::Write(Write::SetInputVelocity),
+                    data: [0; 8],
+                });
+                can_read_write.request_many(vec![can_frame; num_messages]);
+                is_done_clone.store(true, Ordering::SeqCst);
+            });
+
+            let start = Instant::now();
+            while !is_done.load(Ordering::SeqCst) {
+                can_proxy.process_messages();
+            }
+
+            let elapsed = start.elapsed().div_f32(num_messages as f32);
+            can_proxy.unregister("thread 1");
+            return elapsed;
         });
     });
-    // FIXME `cargo bench` does not exit even after calling stop
-    can_proxy.stop();
-
 }
 
 #[cfg(not(feature = "mock-socket"))]
