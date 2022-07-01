@@ -1,6 +1,5 @@
-use std::{thread::sleep, time::Duration, sync::atomic::{AtomicBool, Ordering}};
-use rustodrive::odrivegroup::test_motor_calib;
-use rustodrive::{canproxy::CANProxy, odrivegroup::ODriveGroup, messages::ODriveCANFrame, commands::{Read, ODriveAxisState, ODriveCommand}};
+use std::{time::Duration};
+use rustodrive::{messages::ODriveCANFrame, commands::{Read, ODriveCommand}, canproxy::CANProxy};
 
 fn setup_can() {
     let mut can_proxy = CANProxy::new("can1");
@@ -21,15 +20,12 @@ fn setup_can() {
             println!("response: {:?}", res);
         }
     });
-    let stop_arc = can_proxy.is_alive().to_owned();
-    let proxy_handle = std::thread::spawn(move || {can_proxy.begin(); can_proxy});
+    let stop_all = can_proxy.begin();
 
-
+    
     std::thread::sleep(Duration::new(10, 0));
     
-    stop_arc.store(false, Ordering::SeqCst);
-    let mut can_proxy = proxy_handle.join().unwrap();
-    can_proxy.stop();
+    stop_all().unwrap();
     println!("all done!")
 }
 

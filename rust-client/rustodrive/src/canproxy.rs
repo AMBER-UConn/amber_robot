@@ -41,6 +41,7 @@ impl CANProxy {
             threads_alive: Arc::new(AtomicBool::new(true)),
         }
     }
+
     pub fn register_rw<F>(&mut self, thread_name: &'static str, thread_func: F)
     where
         F: FnOnce(ReadWriteCANThread) + std::marker::Send + 'static,
@@ -97,7 +98,7 @@ impl CANProxy {
         // Give the thread the ability to send to the proxy
         // and receive from the proxy
         let thread_handle = std::thread::spawn(move || {
-            func(thread_requester, thread_receiver);
+            return func(thread_requester, thread_receiver);
         });
 
         // Add the thread and keep track of it
@@ -140,7 +141,7 @@ impl CANProxy {
         for request in receiver.try_iter() {
             match self.socket.write_frame(&request.msg.to_can()) {
                 Ok(_) => {
-                    println!("sent: {:?}", &request);
+                    // println!("sent: {:?}", &request);
 
                     self.listeners.push(request);
                 },
@@ -152,11 +153,37 @@ impl CANProxy {
         }
     }
 
-    /// Keep receiving responses from the odrive unless someone stops the threads
-    pub fn begin(&mut self) {
-        while self.threads_alive.load(Ordering::SeqCst) {
-            self.process_messages();
-        }
+    /// This starts a separate thread to process messages with the CANProxy.
+    /// This method also returns a function that handles the shutdown of all 
+    /// the threads
+    pub fn begin(mut self) -> impl FnOnce() -> std::thread::Result<CANProxy>  {
+        let threads_alive_copy = self.threads_alive.clone();
+
+        let proxy_handle = std::thread::spawn(move || {
+            while self.is_alive() {
+                self.process_messages();
+            }
+            return self;
+        });
+
+        // Send the signal for the proxy_handle and all threads to finish up their work
+        let stop_all = move || {
+            threads_alive_copy.store(false, Ordering::SeqCst);
+
+            // wait for proxy thread to finish
+            let mut proxy = match proxy_handle.join() {
+                Ok(p) => p,
+                Err(err) => return Err(err),
+            };
+
+            // Then stop and wait for all the threads that were registered
+            match proxy.stop_registered() {
+                Ok(()) => return Ok(proxy),
+                Err(e) => return Err(e),
+            }
+        };
+
+        return stop_all;
     }
 
     pub fn process_messages(&mut self) {
@@ -172,7 +199,7 @@ impl CANProxy {
         // Find the message that is waiting for a response and send it back
         match self.listener_index(&can_response) {
             Some(index) => {
-                println!("response matched with smth from odrive {:?}", can_response);
+                // println!("response matched with smth from odrive {:?}", can_response);
 
                 let waiting = self.listeners.remove(index);
                 self.respond(waiting.thread_name, Ok(can_response))
@@ -191,13 +218,13 @@ impl CANProxy {
         proxy_responder.send(response).expect(&format!("Proxy cannot reach thread {}", thread_name));
     }
 
-    pub fn is_alive(&self) -> &Arc<AtomicBool> {
-        return &self.threads_alive;
+    pub fn is_alive(&self) -> bool {
+        return self.threads_alive.load(Ordering::SeqCst);
     }
 
     /// Notify all the threads that they need to stop and then wait for them to do so
     /// Returns thread Error if any single thread fails to stop
-    pub fn stop(&mut self) -> std::thread::Result<()> {
+    pub fn stop_registered(&mut self) -> std::thread::Result<()> {
         self.threads_alive.store(false, Ordering::SeqCst);
 
         for thread in self.threads.drain() {
@@ -269,7 +296,6 @@ mod tests {
     #[test]
     fn test_full_proxy_thread_can_setup() {
         let mut can_proxy = CANProxy::new("fakecan");
-        let threads_running = can_proxy.threads_alive.clone();
 
         // Setup request data
         let mut requests = Vec::new();
@@ -293,11 +319,8 @@ mod tests {
 
 
         // We run the proxy on a separate thread to not interfere with checking for responses
-        let proxy_thread = std::thread::spawn(move || {
-            can_proxy.begin();
-            can_proxy
-        });
-        
+        let stop_all = can_proxy.begin();
+
 
         // Keep looping on this thread until it sends a response back through the channel 
         let response: Vec<ODriveResponse>;
@@ -323,8 +346,6 @@ mod tests {
             
 
         // send the signal for all threads to stop
-        threads_running.store(false,  std::sync::atomic::Ordering::SeqCst);
-        let mut can_proxy = proxy_thread.join().unwrap();
-        can_proxy.stop();
+        stop_all().unwrap();
     }
 }
