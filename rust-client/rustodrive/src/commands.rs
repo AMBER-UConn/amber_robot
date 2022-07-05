@@ -54,7 +54,7 @@ impl Write {
 }
 
 
-/// Documentation: https://docs.odriverobotics.com/v/latest/can-protocol.html#messages 
+/// Documentation: <https://docs.odriverobotics.com/v/latest/can-protocol.html#messages>
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum ODriveCommand {
     Read(Read),
@@ -62,7 +62,7 @@ pub enum ODriveCommand {
 }
 
 back_to_enum! {
-    /// Documentation: https://docs.odriverobotics.com/v/latest/fibre_types/com_odriverobotics_ODrive.html?highlight=axisstate#ODrive.Axis.AxisState
+    /// Documentation: <https://docs.odriverobotics.com/v/latest/fibre_types/com_odriverobotics_ODrive.html?highlight=axisstate#ODrive.Axis.AxisState>
     pub enum ODriveAxisState {
         Undefined = 0x0,
         Idle = 0x1,

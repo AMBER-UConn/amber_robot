@@ -53,8 +53,9 @@ pub(crate) trait CANThreadCommunicator {
     fn get_receiver(&self) -> &Receiver<ODriveResponse>;
 
     /// This sends all the messages specified and waits until responses have been
-    /// received for all of them
+    /// received for all of them.
     fn request_many(&self, requests: Vec<ODriveCANFrame>) -> Vec<ODriveResponse> {
+
         // Send off all the messages
         let num_messages = requests.len();
         for req in requests {
@@ -126,7 +127,6 @@ impl ReadWriteCANThread {
         CANThreadCommunicator::request(self, msg)
     }
 
-    /// Takes
     pub fn request_many(&self, messages: Vec<ODriveCANFrame>) -> Vec<ODriveResponse> {
         CANThreadCommunicator::request_many(self, messages)
     }
@@ -244,11 +244,13 @@ mod tests {
     }
 
     #[test]
+    /// This tests the default implementation in the CANThreadCommuniactor trait
+    /// can receive messages using proxy_to_thread()
     fn test_default_proxy_to_thread() {
         let threads_running = Arc::new(AtomicBool::new(true));
         let thread = ThreadStub::new("test", threads_running.clone());
 
-        let response = Err(ODriveError::FailedToSend);
+        let response = ODriveResponse::Response(Err(ODriveError::FailedToSend));
 
         thread.proxy_sender.send(response.clone());
         let response_received = thread.rw_communicator.proxy_to_thread();

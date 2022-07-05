@@ -3,7 +3,27 @@ use socketcan::CANFrame;
 use crate::commands::ODriveCommand;
 use crate::commands;
 
-pub type ODriveResponse = Result<ODriveCANFrame, ODriveError>;
+#[derive(Clone, Debug, PartialEq)]
+pub enum ODriveResponse {
+    ReqReceived,
+    Response(Result<ODriveCANFrame, ODriveError>)
+}
+
+impl ODriveResponse {
+    /// Returns the contained [`Result<ODriveCANFrame, ODriveError>`]
+    /// consuming the `self` value
+    /// This mirrors the functionality of `.unwrap()` on an option.
+    /// 
+    /// This function will panic if it is called on ['ODriveResponse::ReqReceived']
+    pub fn body(self) -> Result<ODriveCANFrame, ODriveError> {
+        match self {
+            ODriveResponse::ReqReceived => panic!("called ODriveResponse::response() on a body-less response"),
+            ODriveResponse::Response(response) => return response,
+        }
+    }
+}
+
+
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct ODriveCANFrame {
     pub axis: u32,
@@ -14,10 +34,9 @@ pub struct ODriveCANFrame {
 impl ODriveCANFrame {
     const AXIS_BITS: u32 = 5;
 
-    pub fn to_can(&self) -> socketcan::CANFrame {
+    pub fn to_can(&self, rtr: bool) -> socketcan::CANFrame {
         let id = self.axis << Self::AXIS_BITS | self.get_cmd_id();
-        // TODO check that rtr works as expected on the actual odrive CAN
-        return socketcan::CANFrame::new(id, &self.data, true, false).unwrap(); // ODrive rquires the RTR bitset be enabled for call/response
+        return socketcan::CANFrame::new(id, &self.data, rtr, false).unwrap(); // ODrive rquires the RTR bitset be enabled for call/response
     }
 
     fn get_cmd_id(&self) -> u32 {
@@ -62,6 +81,7 @@ impl ODriveCANFrame {
     }
 }
 
+
 #[derive(Clone, PartialEq, Debug)]
 pub struct ODriveMessage {
     pub thread_name: &'static str,
@@ -96,17 +116,20 @@ mod tests {
         };
 
         // Calculated by hand. See this example https://docs.odriverobotics.com/v/latest/can-protocol.html#can-frame
-        let can_frame = msg1.to_can();
+        let rtr_enabled = true;
+        let can_frame = msg1.to_can(rtr_enabled);
         assert_eq!(can_frame.id(), 0x2C); 
         assert_eq!(can_frame.data(), [0, 0, 0, 0, 0, 0, 0, 0]);
-        assert_eq!(can_frame.is_rtr(), true);
+        assert_eq!(can_frame.is_rtr(), rtr_enabled);
 
         // Test it converts back properly
         assert_eq!(msg1, msg1.clone()); // test that equals works
         assert_eq!(msg1, ODriveCANFrame::from_can(&can_frame));
 
         // test that conversion works with read messages
-        assert_eq!(msg2, ODriveCANFrame::from_can(&msg2.to_can()));
+        // Converting from CANFrame to ODriveCANFrame ignores 
+        //the rtr bit so either true/false is fine
+        assert_eq!(msg2, ODriveCANFrame::from_can(&msg2.to_can(true)));
 
     }
 
