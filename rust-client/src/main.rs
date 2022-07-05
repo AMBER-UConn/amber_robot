@@ -1,16 +1,30 @@
-use crate::keyboard::KeyboardSender;
-use rosrust;
-pub mod gamepad;
-pub mod keyboard;
+use gilrs::{Gilrs, Button, Event};
 
-mod msg {
-    rosrust::rosmsg_include!(std_msgs/String);
-}
+pub mod gamepad;
 
 fn main() {
-    // Initialize node
 
-    // Create object that maintains 10Hz between sleep requests
-    let mut kb_send = KeyboardSender::new("kbstream".to_string());
-    kb_send.start_kb_stream();
+    let mut gilrs = Gilrs::new().unwrap();
+    
+    // Iterate over all connected gamepads
+    for (_id, gamepad) in gilrs.gamepads() {
+        println!("{} is {:?}", gamepad.name(), gamepad.power_info());
+    }
+    
+    let mut active_gamepad = None;
+    
+    loop {
+        // Examine new events
+        while let Some(Event { id, event, time }) = gilrs.next_event() {
+            println!("{:?} New event from {}: {:?}", time, id, event);
+            active_gamepad = Some(id);
+        }
+    
+        // You can also use cached gamepad state
+        if let Some(gamepad) = active_gamepad.map(|id| gilrs.gamepad(id)) {
+            if gamepad.is_pressed(Button::South) {
+                println!("Button South is pressed (XBox - A, PS - X)");
+            }
+        }
+    }
 }
