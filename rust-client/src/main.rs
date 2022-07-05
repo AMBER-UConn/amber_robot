@@ -31,7 +31,6 @@ fn can_testing() -> Result<(), Box<dyn Error>> {
         break;
     }
 
-    stop_all().unwrap();
     println!("all done!");
     Ok(())
 }

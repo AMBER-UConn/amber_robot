@@ -37,7 +37,7 @@ pub(crate) trait CANThreadCommunicator {
         // take the message and send it over the channel
         match can_send.send(ODriveMessage {
             thread_name: self.thread_name(),
-            msg: frame,
+            body: frame,
         }) {
             Ok(()) => {}
             Err(error) => panic!("Lost connection to CANManager thread: \n{}", error),
@@ -132,7 +132,7 @@ impl ReadWriteCANThread {
     }
 
     /// This should look at the shared reference of whether the threads should be running,
-    pub fn check_alive(&self) -> bool {
+    pub fn is_alive(&self) -> bool {
         self.threads_alive.load(Ordering::SeqCst)
     }
 }
@@ -205,7 +205,7 @@ impl ReadOnlyCANThread {
     }
 
     /// This should look at the mutex of whether the threads should be running,
-    pub fn check_alive(&self) -> bool {
+    pub fn is_alive(&self) -> bool {
         self.threads_alive.load(Ordering::SeqCst)
     }
 }
@@ -234,7 +234,7 @@ mod tests {
         };
         let expected_msg = ODriveMessage {
             thread_name: "test",
-            msg: can_frame,
+            body: can_frame,
         };
 
         thread.rw_communicator.thread_to_proxy(can_frame);

@@ -85,7 +85,7 @@ impl ODriveCANFrame {
 #[derive(Clone, PartialEq, Debug)]
 pub struct ODriveMessage {
     pub thread_name: &'static str,
-    pub msg: ODriveCANFrame,
+    pub body: ODriveCANFrame,
 }
 
 #[derive(Clone, PartialEq, Debug)]
