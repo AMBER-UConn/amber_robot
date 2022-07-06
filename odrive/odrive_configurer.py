@@ -34,7 +34,7 @@ class RoverMotorConfig:
     VBUS_VOLTAGE = 24
     CAN_BAUD_RATE = 250000
 
-    def __init__(self, axis_num):
+    def __init__(self, odrv, axis_num):
         """
         Initalizes RoverMotorConfig class by finding odrive, erase its 
         configuration, and grabbing specified axis object.
@@ -44,27 +44,22 @@ class RoverMotorConfig:
         """
         self.axis_num = axis_num
         self.axis = None
+        self.odrv = odrv
     
         # Connect to Odrive
-        print("Looking for ODrive...")
-        self._find_odrive()
-        print("Found ODrive.")
-
-    def _find_odrive(self):
-        # connect to Odrive
-        self.odrv = odrive.find_any()
+        
         self.axis = getattr(self.odrv, f"axis{self.axis_num}")
 
+
+    @classmethod
+    def get_odrive(cls):
+        # connect to Odrive
+        print("Looking for ODrive...")
+        odrv = odrive.find_any()
+        print("Found ODrive.")
+        return odrv
+
     def configure(self, CAN_id):
-        # Erase pre-exsisting configuration
-        print("Erasing pre-existing configuration...")
-        try:
-            self.odrv.erase_configuration()
-        except:
-            pass
-
-        self._find_odrive()
-
         self.odrv.config.enable_brake_resistor = True # This is to lower the amount of power going back into the odrive when the motor is braking
         
         self.config_motors()
@@ -79,7 +74,6 @@ class RoverMotorConfig:
         except ObjectLostError:
             pass
 
-
     def config_motors(self):
         self.axis.motor.config.current_lim = 9 # The motors have a peak current of 9 amps
         self.axis.motor.config.requested_current_range = 10
@@ -93,7 +87,7 @@ class RoverMotorConfig:
         self.axis.motor.config.motor_type = MOTOR_TYPE_HIGH_CURRENT
 
     def config_encoder(self):
-        ### encoder setup
+        ### TODO encoder setup
         # self.axis.encoder.config.cpr = 4 * ENCODER_PPR # the count per revolution is 4 * the ppr of the encoder
         pass
 
@@ -106,17 +100,15 @@ class RoverMotorConfig:
         self.axis.sensorless_estimator.config.pm_flux_linkage = 5.51328895422 / (2 * RoverMotorConfig.NUM_POLES * RoverMotorConfig.MOTOR_KV)
         self.axis.config.enable_sensorless_mode = True
 
-    def config_CAN(self, can_axes_id):
+    def config_CAN(self, can_axis_id):
         self.odrv.can.config.baud_rate = RoverMotorConfig.CAN_BAUD_RATE
-        self.axis.config.can.node_id = can_axes_id
+        self.axis.config.can.node_id = can_axis_id
 
     def run_motor_calib(self):
         input("Make sure the motor is free to move, then press enter...")
         
         print("Calibrating Odrive for motor (you should hear a "
-        "beep)...")
-        self._find_odrive()
-        
+        "beep)...")        
         self.axis.requested_state = AXIS_STATE_MOTOR_CALIBRATION
         
         # Wait for calibration to take place
@@ -136,12 +128,16 @@ class RoverMotorConfig:
         self.axis.motor.config.pre_calibrated = True
 
 if __name__ == "__main__":
-    odrive_config1 = RoverMotorConfig(axis_num = 0)
+    odrv = RoverMotorConfig.get_odrive()
+    odrv.erase_configuration()
+
+    odrive_config1 = RoverMotorConfig(odrv, axis_num = 0)
     odrive_config1.configure(CAN_id=0)
     
-    odrive_config2 = RoverMotorConfig(axis_num = 1)
+    odrive_config2 = RoverMotorConfig(odrv, axis_num = 1)
     odrive_config2.configure(CAN_id=1)
 
     odrive_config1.run_motor_calib()
+    odrive_config2.run_motor_calib()
 
     
