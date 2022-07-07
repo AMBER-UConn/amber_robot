@@ -309,6 +309,7 @@ impl CANProxy {
             Ok(res) => ODriveCANFrame::from_can(&res),
             Err(_) => return,
         };
+        println!("{:?}", &can_response);
 
         // Find the message that is waiting for a response and send it back
         match self.listener_index(&can_response) {

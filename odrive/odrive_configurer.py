@@ -114,7 +114,7 @@ class RoverMotorConfig:
         print("Calibrating Odrive for motor (you should hear a "
         "beep)...")
         self.axis = self.get_axis(self.axis_num, self.get_odrive())
-        self.axis.requested_state = AXIS_STATE_MOTOR_CALIBRATION
+        self.axis.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE
         
         # Wait for calibration to take place
         time.sleep(10)

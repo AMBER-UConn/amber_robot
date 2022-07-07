@@ -4,9 +4,9 @@ use rustodrive::{messages::ODriveCANFrame, commands::{Read, ODriveCommand}, canp
 use signal_hook::{consts::SIGINT, iterator::Signals};
 
 fn can_testing() -> Result<(), Box<dyn Error>> {
-    let mut can_proxy = CANProxy::new("can1");
+    let mut can_proxy = CANProxy::new("can0");
 
-    can_proxy.register_rw("thread1", |can_read_write| {
+    /* can_proxy.register_rw("thread1", |can_read_write| {
         let mut requests = Vec::new();
         for ax in 0..2 {
             requests.push(ODriveCANFrame {
@@ -21,7 +21,7 @@ fn can_testing() -> Result<(), Box<dyn Error>> {
         for res in responses {
             println!("response: {:?}", res);
         }
-    });
+    }); */
 
     let stop_all = can_proxy.begin();
     
