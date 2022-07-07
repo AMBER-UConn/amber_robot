@@ -44,11 +44,11 @@ class RoverMotorConfig:
         """
         self.axis_num = axis_num
         self.axis = None
-        self.odrv = odrv
+        self.odrv = self.get_odrive()
     
         # Connect to Odrive
         
-        self.axis = getattr(self.odrv, f"axis{self.axis_num}")
+        self.axis = self.get_axis(self.axis_num, self.odrv)
 
 
     @classmethod
@@ -58,6 +58,10 @@ class RoverMotorConfig:
         odrv = odrive.find_any()
         print("Found ODrive.")
         return odrv
+
+    @classmethod
+    def get_axis(cls, axis_num, odrv):
+        return getattr(odrv, f"axis{axis_num}")
 
     def configure(self, CAN_id):
         self.odrv.config.enable_brake_resistor = True # This is to lower the amount of power going back into the odrive when the motor is braking
@@ -108,12 +112,15 @@ class RoverMotorConfig:
         input("Make sure the motor is free to move, then press enter...")
         
         print("Calibrating Odrive for motor (you should hear a "
-        "beep)...")        
+        "beep)...")
+        self.axis = self.get_axis(self.axis_num, self.get_odrive())
         self.axis.requested_state = AXIS_STATE_MOTOR_CALIBRATION
         
         # Wait for calibration to take place
         time.sleep(10)
         # TODO the calibration sequence does not appear to work properly
+
+        
 
         if self.axis.motor.error != 0:
             print("Error: Odrive reported an error of {} while in the state " 
@@ -129,13 +136,20 @@ class RoverMotorConfig:
 
 if __name__ == "__main__":
     odrv = RoverMotorConfig.get_odrive()
-    odrv.erase_configuration()
+    print("Erasing pre-existing configuration...")
+    try:
+        odrv.erase_configuration()
+    except:
+        pass
+    
 
     odrive_config1 = RoverMotorConfig(odrv, axis_num = 0)
     odrive_config1.configure(CAN_id=0)
     
     odrive_config2 = RoverMotorConfig(odrv, axis_num = 1)
     odrive_config2.configure(CAN_id=1)
+
+    odrv = RoverMotorConfig.get_odrive()
 
     odrive_config1.run_motor_calib()
     odrive_config2.run_motor_calib()

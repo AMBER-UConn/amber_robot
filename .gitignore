@@ -1,2 +1,4 @@
-rosrust
-.vscode
+rosrust/
+.vscode/
+.history/
+target/
