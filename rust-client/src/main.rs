@@ -1,11 +1,24 @@
 use std::error::Error;
 
-use rustodrive::{messages::ODriveCANFrame, commands::{Read, ODriveCommand}, canproxy::CANProxy};
+use rustodrive::{messages::ODriveCANFrame, commands::{Read, ODriveCommand, Write, ODriveAxisState}, canproxy::CANProxy};
 use signal_hook::{consts::SIGINT, iterator::Signals};
 
 fn can_testing() -> Result<(), Box<dyn Error>> {
     let mut can_proxy = CANProxy::new("can0");
-
+    can_proxy.register_rw("thread 1", move |can_read_write| {
+        can_read_write.request_many(vec![
+            ODriveCANFrame {
+                axis: 0,
+                cmd: ODriveCommand::Write(Write::SetAxisRequestedState),
+                data: [ODriveAxisState::FullCalibrationSequence as u8, 0, 0, 0, 0, 0, 0, 0]
+            },
+            ODriveCANFrame {
+                axis: 1,
+                cmd: ODriveCommand::Write(Write::SetAxisRequestedState),
+                data: [ODriveAxisState::FullCalibrationSequence as u8, 0, 0, 0, 0, 0, 0, 0]
+            },
+        ]);
+    });
     /* can_proxy.register_rw("thread1", |can_read_write| {
         let mut requests = Vec::new();
         for ax in 0..2 {
