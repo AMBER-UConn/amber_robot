@@ -1,23 +1,96 @@
-use socketcan::{CANFrame, CANSocket};
-use crate::commands::ODriveCommand;
-use crate::messages::ODriveCANFrame;
+use std::collections::HashMap;
 
 use crate::{
-    commands::{self, ODriveAxisState},
+    messages::{ODriveResponse, ODriveCANFrame},
+    threads::ReadWriteCANThread, commands::{ODriveCommand, ODriveAxisState, Write},
 };
 
-pub struct ODriveGroup {
-    axis_ids: &'static [usize],
+pub type AxisID = usize;
+
+pub struct ODriveGroup<'a> {
+    can: ReadWriteCANThread,
+    axes: HashMap<&'a AxisID, Axis<'a>>,
 }
 
-impl ODriveGroup {
-    pub fn new() -> Self {
-        todo!()
+impl<'a> ODriveGroup<'a> {
+    pub fn new(can: ReadWriteCANThread, axis_ids: &'static [AxisID]) -> Self {
+        ODriveGroup {
+            axes: axis_ids.iter().map(|id| (id, Axis::new(id))).collect(),
+            can,
+        }
+    }
+
+    pub fn all_axes<F>(&self, f: F) -> Vec<ODriveResponse>
+    where
+        F: FnMut(&Axis) -> ODriveCANFrame,
+    {
+        let requests = self.axes.values().map(|ax| f(ax)).collect();
+        self.can.request_many(requests)
+    }
+
+    pub fn axis<F>(&self, axis_id: &AxisID, f: F) -> ODriveResponse
+    where
+        F: FnOnce(&Axis) -> ODriveCANFrame,
+    {
+        self.can.request(f(self.get_axis(axis_id)))
+    }
+    
+    fn get_axis(&self, id: &AxisID) -> &Axis {
+        match self.axes.get(id) {
+            Some(axis) => axis,
+            None => panic!("Cannot retrieve axis {} that doesn't exist!", id)
+        }
     }
 }
 
-struct Encoder;
-impl Encoder {
+struct Axis<'a> {
+    id: &'a AxisID,
+    motor: Motor<'a>,
+    encoder: Encoder<'a>,
+}
+
+impl<'a> Axis<'a> {
+    pub fn new(id: &'a AxisID) -> Self {
+        Axis {
+            id,
+            motor: Motor::new(id),
+            encoder: Encoder::new(id),
+        }
+    }
+
+    pub fn set_state(&self, state: ODriveAxisState) -> ODriveCANFrame {
+        ODriveCANFrame { axis: *self.id as u32, cmd: ODriveCommand::Write(Write::SetAxisRequestedState), data: [state as u8, 0, 0, 0, 0, 0, 0, 0] }
+    }
+}
+
+pub trait ManyResponses {
+    fn expect_bodies(self, msg: &str) -> Vec<ODriveCANFrame>;
+}
+impl ManyResponses for Vec<ODriveResponse> {
+
+    /// This method calls .expect() on all responses. 
+    /// This will panic if called on a response that was
+    /// read only (ex: Heartbeat)
+    fn expect_bodies(self, msg: &str) -> Vec<ODriveCANFrame> {
+        let mut frames = Vec::new();
+
+        for res in self.into_iter() {
+            match res {
+                ODriveResponse::Response(body) => frames.push(body.expect(msg)),
+                ODriveResponse::ReqReceived(_) => panic!("Write requests do not return a response body")
+            }
+        }
+        frames
+    }
+}
+
+struct Encoder<'a> {
+    id: &'a AxisID,
+}
+impl<'a> Encoder<'a> {
+    pub fn new(id: &'a AxisID) -> Self {
+        Encoder { id }
+    }
     fn get_error() {
         unimplemented!()
     }
@@ -45,14 +118,14 @@ impl Trajectory {
     }
 }
 
-struct Axis {
-    id: usize,
-    motor: Motor,
-    encoder: Encoder,
+struct Motor<'a> {
+    id: &'a AxisID,
 }
+impl<'a> Motor<'a> {
+    pub fn new(id: &'a AxisID) -> Self {
+        Motor { id }
+    }
 
-struct Motor;
-impl Motor {
     fn get_error() {
         unimplemented!()
     }

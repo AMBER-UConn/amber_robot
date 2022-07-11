@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::f32::consts::E;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::Arc;
@@ -284,7 +283,7 @@ impl CANProxy {
                     match request.body.cmd {
                         // If the request was successfully sent and it is a Write request, notify that it was sucessfully sent
                         ODriveCommand::Write(_) => {
-                            self.respond(request.thread_name, ODriveResponse::ReqReceived)
+                            self.respond(request.thread_name, ODriveResponse::ReqReceived(request.body.axis as usize))
                         }
                         // otherwise add the message as a listener
                         ODriveCommand::Read(_) => self.requests.push(request),

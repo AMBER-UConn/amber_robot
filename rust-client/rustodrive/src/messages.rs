@@ -2,10 +2,11 @@ use socketcan::CANFrame;
 
 use crate::commands::ODriveCommand;
 use crate::commands;
+use crate::odrivegroup::AxisID;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ODriveResponse {
-    ReqReceived,
+    ReqReceived(AxisID),
     Response(Result<ODriveCANFrame, ODriveError>)
 }
 
@@ -17,7 +18,7 @@ impl ODriveResponse {
     /// This function will panic if it is called on ['ODriveResponse::ReqReceived']
     pub fn body(self) -> Result<ODriveCANFrame, ODriveError> {
         match self {
-            ODriveResponse::ReqReceived => panic!("called ODriveResponse::response() on a body-less response"),
+            ODriveResponse::ReqReceived(id) => panic!("called ODriveResponse::response() on a body-less response (axis {})", id),
             ODriveResponse::Response(response) => return response,
         }
     }
