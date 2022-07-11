@@ -17,18 +17,13 @@ fn can_testing() -> Result<(), Box<dyn Error>> {
                 cmd: ODriveCommand::Write(Write::SetAxisRequestedState),
                 data: [ODriveAxisState::FullCalibrationSequence as u8, 0, 0, 0, 0, 0, 0, 0]
             },
-        ]);
-    });
-    let mut can_proxy2 = CANProxy::new("can1");
-    can_proxy2.register_rw("thread 1", move |can_read_write| {
-        can_read_write.request_many(vec![
             ODriveCANFrame {
-                axis: 0,
+                axis: 2,
                 cmd: ODriveCommand::Write(Write::SetAxisRequestedState),
-                data: [ODriveAxisState::FullCalibrationSequence as u8, 0, 0, 0, 0, 0, 0, 0]
+                data: [ODriveAxisState::ClosedLoop as u8, 0, 0, 0, 0, 0, 0, 0]
             },
             ODriveCANFrame {
-                axis: 1,
+                axis: 3,
                 cmd: ODriveCommand::Write(Write::SetAxisRequestedState),
                 data: [ODriveAxisState::FullCalibrationSequence as u8, 0, 0, 0, 0, 0, 0, 0]
             },
@@ -52,7 +47,6 @@ fn can_testing() -> Result<(), Box<dyn Error>> {
     }); */
 
     let stop_all = can_proxy.begin();
-    let stop_all2 = can_proxy2.begin();
     
     let mut signals = Signals::new(&[SIGINT])?;    
     for sig in signals.forever() {
