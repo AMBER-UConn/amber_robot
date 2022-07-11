@@ -142,12 +142,13 @@ if __name__ == "__main__":
     except:
         pass
     
+    odrv_can_id = 2 * int(input("ODrive CAN ID > "))
 
     odrive_config1 = RoverMotorConfig(odrv, axis_num = 0)
-    odrive_config1.configure(CAN_id=0)
+    odrive_config1.configure(CAN_id=odrv_can_id)
     
     odrive_config2 = RoverMotorConfig(odrv, axis_num = 1)
-    odrive_config2.configure(CAN_id=1)
+    odrive_config2.configure(CAN_id=odrv_can_id + 1)
 
     odrv = RoverMotorConfig.get_odrive()
 
