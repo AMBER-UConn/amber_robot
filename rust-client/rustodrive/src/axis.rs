@@ -1,11 +1,17 @@
-use crate::{commands::{ODriveAxisState, ODriveCommand, Write}, messages::CANRequest};
+use socketcan::CANFrame;
+
+use crate::{commands::{ODriveAxisState, ODriveCommand, Write}, messages::{CANRequest, ODriveCANFrame}};
 
 
 pub type AxisID = usize;
+
+/// This struct contains methods that can generate common [`ODriveCANFrame`] configurations.
+/// The [`Motor`] and [`Encoder`] objects are publicly accessible and define their own
+/// frame-generating methods.
 pub struct Axis<'a> {
     id: &'a AxisID,
-    motor: Motor<'a>,
-    encoder: Encoder<'a>,
+    pub motor: Motor<'a>,
+    pub encoder: Encoder<'a>,
 }
 
 impl<'a> Axis<'a> {
@@ -17,6 +23,7 @@ impl<'a> Axis<'a> {
         }
     }
 
+    /// This generates the command to set the state for the `Axis` object in question
     pub fn set_state(&self, state: ODriveAxisState) -> CANRequest {
         CANRequest { axis: *self.id as u32, cmd: ODriveCommand::Write(Write::SetAxisRequestedState), data: [state as u8, 0, 0, 0, 0, 0, 0, 0] }
     }
@@ -24,7 +31,7 @@ impl<'a> Axis<'a> {
 
 
 
-struct Encoder<'a> {
+pub struct Encoder<'a> {
     id: &'a AxisID,
 }
 impl<'a> Encoder<'a> {
@@ -58,7 +65,7 @@ impl Trajectory {
     }
 }
 
-struct Motor<'a> {
+pub struct Motor<'a> {
     id: &'a AxisID,
 }
 impl<'a> Motor<'a> {
