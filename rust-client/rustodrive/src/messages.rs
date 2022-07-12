@@ -5,7 +5,7 @@ use socketcan::CANFrame;
 pub type CANRequest = ODriveCANFrame;
 pub type CANResponse = ODriveCANFrame;
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub struct ODriveCANFrame {
     pub axis: u32,
     pub cmd: ODriveCommand,
