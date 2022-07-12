@@ -71,6 +71,7 @@ back_to_enum! {
         MotorCalibration = 0x4,
         EncoderIndexSearch = 0x5,
         EncoderOffsetCalib = 0x7,
+        ClosedLoop = 0x8,
         LockinSpin = 0x9,
         EncoderDirFind = 0xA,
         Homing = 0xB,

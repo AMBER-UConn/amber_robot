@@ -1,6 +1,6 @@
 import can
 
-bus = can.Bus("can1", bustype="socketcan")
+bus = can.Bus("can0", bustype="socketcan")
 axisID = 0x0
 
 print("Requesting AXIS_STATE_FULL_CALIBRATION_SEQUENCE (0x03) on axisID: " + str(axisID))

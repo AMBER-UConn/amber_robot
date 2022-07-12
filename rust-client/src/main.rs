@@ -1,17 +1,22 @@
 use std::error::Error;
 
-use rustodrive::{
-    canproxy::CANProxy,
-    odrivegroup::{ODriveGroup},
-    commands::ODriveAxisState::*, threads::ReadWriteCANThread
-};
+use rustodrive::{commands::ODriveAxisState::*, canproxy::CANProxy, threads::ReadWriteCANThread, odrivegroup::ODriveGroup};
 use signal_hook::{consts::SIGINT, iterator::Signals};
 
+
+fn odrive_main(can_read_write: ReadWriteCANThread) {
+    let odrives = ODriveGroup::new(can_read_write, &[1, 2, 3, 4]);
+
+    println!("Starting calibration sequence");
+    odrives.all_axes(|ax| ax.set_state(FullCalibrationSequence));
+    println!("Finished calibration sequence");
+
+    println!("Motors fully calibrated!")
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
-    let mut can_proxy = CANProxy::new("can1");
-
-    can_proxy.register_rw("thread1", odrive_main);
-
+    let mut can_proxy = CANProxy::new("can0");
+    can_proxy.register_rw("thread 1", odrive_main);
     let stop_all = can_proxy.begin();
 
     let mut signals = Signals::new(&[SIGINT])?;
@@ -22,14 +27,4 @@ fn main() -> Result<(), Box<dyn Error>> {
     stop_all().unwrap();
     println!("all done!");
     Ok(())
-}
-
-fn odrive_main(can_read_write: ReadWriteCANThread) {
-    let odrives = ODriveGroup::new(can_read_write, &[1, 2, 3, 4]);
-
-    println!("Starting calibration sequence");
-    odrives.all_axes(|ax| ax.set_state(FullCalibrationSequence));
-    println!("Finished calibration sequence");
-
-    println!("Motors fully calibrated!")
 }

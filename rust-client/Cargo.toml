@@ -10,7 +10,7 @@ edition = "2021"
 [dependencies]
 # rosrust_msg = "0.1.4" 
 # rosrust = "0.9.8"
-rustodrive = { path = "rustodrive", features=['mock-socket'] }
+rustodrive = { path = "rustodrive" }
 signal-hook = "0.3.14"
 
 # openrr-planner = "0.0.6" # path planning libraru
