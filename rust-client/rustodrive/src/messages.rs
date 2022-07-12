@@ -1,29 +1,8 @@
 use socketcan::CANFrame;
 
-use crate::commands::ODriveCommand;
+use crate::axis::AxisID;
 use crate::commands;
-use crate::odrivegroup::AxisID;
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum ODriveResponse {
-    ReqReceived(AxisID),
-    Response(Result<ODriveCANFrame, ODriveError>)
-}
-
-impl ODriveResponse {
-    /// Returns the contained [`Result<ODriveCANFrame, ODriveError>`]
-    /// consuming the `self` value
-    /// This mirrors the functionality of `.unwrap()` on an option.
-    /// 
-    /// This function will panic if it is called on ['ODriveResponse::ReqReceived']
-    pub fn body(self) -> Result<ODriveCANFrame, ODriveError> {
-        match self {
-            ODriveResponse::ReqReceived(id) => panic!("called ODriveResponse::response() on a body-less response (axis {})", id),
-            ODriveResponse::Response(response) => return response,
-        }
-    }
-}
-
+use crate::commands::ODriveCommand;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct ODriveCANFrame {
@@ -50,11 +29,11 @@ impl ODriveCANFrame {
     fn to_cmd(can_id: u32) -> ODriveCommand {
         // 0x1F is 00011111 in binary. Take the last 5 bits to get the command
         let cmd_id = can_id & 0x1F;
-        
+
         // Then try converting to a write command
         match TryInto::<commands::Write>::try_into(cmd_id) {
             Ok(cmd) => return ODriveCommand::Write(cmd),
-            Err(_) => {},
+            Err(_) => {}
         }
 
         // Try first converting to a read command
@@ -65,14 +44,16 @@ impl ODriveCANFrame {
     }
 
     pub fn from_can(frame: &CANFrame) -> Self {
-        // Get the first 5 bits 
+        // Get the first 5 bits
         let axis = frame.id() >> Self::AXIS_BITS;
         let cmd = Self::to_cmd(frame.id());
 
         ODriveCANFrame {
-            axis, 
+            axis,
             cmd,
-            data: frame.data().try_into().expect("Error with CANFrame. data() returned slice that could not be coerced into [u8; 8]"),
+            data: frame.data().try_into().expect(
+                "Error with CANFrame. data() returned slice that could not be coerced into [u8; 8]",
+            ),
         }
     }
 
@@ -82,7 +63,50 @@ impl ODriveCANFrame {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub enum ODriveResponse {
+    ReqReceived(AxisID),
+    Response(Result<ODriveCANFrame, ODriveError>),
+}
 
+impl ODriveResponse {
+    /// Returns the contained [`Result<ODriveCANFrame, ODriveError>`]
+    /// consuming the `self` value
+    /// This mirrors the functionality of `.unwrap()` on an option.
+    ///
+    /// This function will panic if it is called on ['ODriveResponse::ReqReceived']
+    pub fn body(self) -> Result<ODriveCANFrame, ODriveError> {
+        match self {
+            ODriveResponse::ReqReceived(id) => panic!(
+                "called ODriveResponse::response() on a body-less response (axis {})",
+                id
+            ),
+            ODriveResponse::Response(response) => return response,
+        }
+    }
+}
+
+pub trait ManyResponses {
+    fn expect_bodies(self, msg: &str) -> Vec<ODriveCANFrame>;
+}
+impl ManyResponses for Vec<ODriveResponse> {
+    /// This method calls .expect() on all responses.
+    /// This will panic if called on a response that was
+    /// read only (ex: Heartbeat)
+    fn expect_bodies(self, msg: &str) -> Vec<ODriveCANFrame> {
+        let mut frames = Vec::new();
+
+        for res in self.into_iter() {
+            match res {
+                ODriveResponse::Response(body) => frames.push(body.expect(msg)),
+                ODriveResponse::ReqReceived(_) => {
+                    panic!("Write requests do not return a response body")
+                }
+            }
+        }
+        frames
+    }
+}
 #[derive(Clone, PartialEq, Debug)]
 pub struct ODriveMessage {
     pub thread_name: &'static str,
@@ -94,10 +118,9 @@ pub enum ODriveError {
     FailedToSend,
 }
 
-
 #[cfg(test)]
 mod tests {
-    use crate::commands::{Write, ODriveCommand, Read};
+    use crate::commands::{ODriveCommand, Read, Write};
 
     use super::ODriveCANFrame;
 
@@ -107,19 +130,19 @@ mod tests {
         let msg1 = ODriveCANFrame {
             axis: 0x1,
             cmd: ODriveCommand::Write(Write::SetInputPosition), // this is cmd id 0x0C
-            data: [0; 8]
+            data: [0; 8],
         };
 
         let msg2 = ODriveCANFrame {
             axis: 0x293874,
             cmd: ODriveCommand::Read(Read::GetEncoderCount), // this is cmd id 0x0C
-            data: [0; 8]
+            data: [0; 8],
         };
 
         // Calculated by hand. See this example https://docs.odriverobotics.com/v/latest/can-protocol.html#can-frame
         let rtr_enabled = true;
         let can_frame = msg1.to_can(rtr_enabled);
-        assert_eq!(can_frame.id(), 0x2C); 
+        assert_eq!(can_frame.id(), 0x2C);
         assert_eq!(can_frame.data(), [0, 0, 0, 0, 0, 0, 0, 0]);
         assert_eq!(can_frame.is_rtr(), rtr_enabled);
 
@@ -128,10 +151,9 @@ mod tests {
         assert_eq!(msg1, ODriveCANFrame::from_can(&can_frame));
 
         // test that conversion works with read messages
-        // Converting from CANFrame to ODriveCANFrame ignores 
+        // Converting from CANFrame to ODriveCANFrame ignores
         //the rtr bit so either true/false is fine
         assert_eq!(msg2, ODriveCANFrame::from_can(&msg2.to_can(true)));
-
     }
 
     #[test]
@@ -145,12 +167,12 @@ mod tests {
         let msg1 = ODriveCANFrame {
             axis: 0x1,
             cmd: ODriveCommand::Write(Write::SetInputPosition), // this is cmd id 0x0C
-            data: [0; 8]
+            data: [0; 8],
         };
         let fake_response = ODriveCANFrame {
             axis: 0x1,
             cmd: ODriveCommand::Write(Write::SetInputPosition), // this is cmd id 0x0C
-            data: [1; 8] // the data has changed but the rest is the same
+            data: [1; 8], // the data has changed but the rest is the same
         };
         assert_eq!(msg1.is_response(&fake_response), true);
     }
