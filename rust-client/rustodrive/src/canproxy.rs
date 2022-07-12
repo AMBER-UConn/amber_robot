@@ -6,7 +6,8 @@ use std::thread::JoinHandle;
 
 use crate::cansocket::CANSocket;
 use crate::commands::ODriveCommand;
-use crate::messages::{ODriveCANFrame, ODriveError, ODriveMessage, ODriveResponse};
+use crate::messages::{CANResponse, ODriveMessage, ODriveCANFrame};
+use crate::response::{ODriveResponse, ResponseType, ErrorResponse, ODriveError};
 use crate::threads::{ReadOnlyCANThread, ReadWriteCANThread};
 
 type ThreadConnection = (JoinHandle<()>, Sender<ODriveResponse>);
@@ -65,13 +66,13 @@ impl CANProxy {
     /// # Example
     /// ```
     /// use rustodrive::canproxy::CANProxy;
-    /// use rustodrive::messages::ODriveCANFrame;
+    /// use rustodrive::messages::CANRequest;
     /// use rustodrive::commands::{ODriveCommand, Read};
     ///
     /// let mut can_proxy = CANProxy::new("can0");
     /// can_proxy.register_rw("thread 1", |can_read_write| {
     ///     // .request() blocks until a response is received
-    ///     can_read_write.request(ODriveCANFrame {
+    ///     can_read_write.request(CANRequest {
     ///         axis: 1,
     ///         cmd: ODriveCommand::Read(Read::GetVBusVoltage),
     ///         data: [0; 8]
@@ -283,16 +284,17 @@ impl CANProxy {
                     match request.body.cmd {
                         // If the request was successfully sent and it is a Write request, notify that it was sucessfully sent
                         ODriveCommand::Write(_) => {
-                            self.respond(request.thread_name, ODriveResponse::ReqReceived(request.body.axis as usize))
+                            self.respond(request.thread_name, Ok(ResponseType::Bodyless { req: request.body }));
                         }
                         // otherwise add the message as a listener
                         ODriveCommand::Read(_) => self.requests.push(request),
                     }
                 }
-                // If there was an error with writing the frame, respond back
+                // If there was an error with writing the frame, respond back with the
+                // the attempted request and the error
                 Err(_) => self.respond(
                     request.thread_name,
-                    ODriveResponse::Response(Err(ODriveError::FailedToSend)),
+                    Err(ErrorResponse{ request: request.body, err: ODriveError::FailedToSend}),
                 ),
             }
         }
@@ -300,12 +302,12 @@ impl CANProxy {
 
     /// This function reads from the CAN socket. If there is a `commands::Write`
     /// request waiting for a response from the CAN bus, this function
-    /// will respond to the appropriate thread with an [`ODriveCANFrame`]
+    /// will respond to the appropriate thread with a [`ODriveResponse`]
     /// containing the data of the response. 
     fn handle_can_response(&mut self) {
         // Listen for a response
         let can_response = match self.socket.read_frame() {
-            Ok(res) => ODriveCANFrame::from_can(&res),
+            Ok(res) => CANResponse::from_can(&res),
             Err(_) => return,
         };
 
@@ -317,7 +319,7 @@ impl CANProxy {
                 let waiting = self.requests.remove(index);
                 self.respond(
                     waiting.thread_name,
-                    ODriveResponse::Response(Ok(can_response)),
+                    Ok(ResponseType::Body {request: waiting.body, response: can_response}),
                 )
             }
             None => {}
@@ -452,11 +454,11 @@ impl CANProxy {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::mpsc::channel;
+    use std::{sync::mpsc::channel, time::Duration};
 
     use crate::{
         commands::{ODriveCommand, Read, Write},
-        messages::{ODriveCANFrame, ODriveResponse}, tests::wait_for_msgs,
+        messages::{CANRequest}, tests::wait_for_msgs, response::{ManyResponses, ODriveResponse, ResponseType},
     };
 
     use super::CANProxy;
@@ -515,7 +517,7 @@ mod tests {
     /// Test that a Read command responds back with a response (should be the same one for testing purposes)
     fn test_read_command_response() {
         let mut can_proxy = CANProxy::new("fakecan");
-        let request = ODriveCANFrame {
+        let request = CANRequest {
             axis: 2,
             cmd: ODriveCommand::Read(Read::EncoderError),
             data: [0; 8],
@@ -539,10 +541,10 @@ mod tests {
 
         // Assert the response body is the same as the CANFrame that was sent in the request
         // because it was a read request using mock-socket
-        let body = response.body().unwrap();
-        assert_eq!(request.axis, body.axis);
-        assert_eq!(request.cmd, body.cmd);
-        assert_ne!(request.data, body.data);
+        let can_response = response.unwrap().body().1;
+        assert_eq!(request.axis, can_response.axis);
+        assert_eq!(request.cmd, can_response.cmd);
+        assert_ne!(request.data, can_response.data);
 
     }
 
@@ -550,7 +552,7 @@ mod tests {
     /// Write command responds with MsgReceived to notify it was sent over the CAN bus
     fn test_write_command_response() {
         let mut can_proxy = CANProxy::new("fakecan");
-        let request = ODriveCANFrame {
+        let request = CANRequest {
             axis: 2,
             cmd: ODriveCommand::Write(Write::SetAxisNodeID),
             data: [0; 8],
@@ -574,20 +576,23 @@ mod tests {
 
         // Assert the response body is the same as the CANFrame that was sent in the request
         // because it was a read request using mock-socket
-        assert_eq!(response, ODriveResponse::ReqReceived(request.axis as usize));
+        assert_eq!(response, Ok(ResponseType::Bodyless{req: request}));
 
     }
 
     #[test]
+    /// Testing that the response is sorted according to the order it was sent
+    /// This is because we cannot assume the odrive will respond sequentially
+    /// to requests.
     fn test_request_many() {
         let mut can_proxy = CANProxy::new("fakecan");
 
         // Setup request data
         let mut requests = Vec::new();
         for i in 0..10 {
-            requests.push(ODriveCANFrame {
+            requests.push(CANRequest {
                 axis: i,
-                cmd: ODriveCommand::Write(Write::RebootODrive),
+                cmd: ODriveCommand::Read(Read::EncoderError),
                 data: [1; 8],
             })
         }
@@ -602,16 +607,18 @@ mod tests {
             send.send(responses).unwrap()
         });
 
-        // We run the proxy on a separate thread to not interfere with checking for responses
-        let stop_all = can_proxy.begin();
+        // we sleep for a short amount of time so that that messages can build up and be
+        // randomly returned to test that the response is sorted properly
+        std::thread::sleep(Duration::from_millis(500));
 
-        // Keep looping on this thread until it sends a response back through the channel
-        let response = wait_for_msgs(rcv);
+        let stop_all = can_proxy.begin();
+        let response = wait_for_msgs(rcv).unwrap_all();
         stop_all().unwrap();
 
-        // the mock-socket feature should return the same message sent in as the response
-        for (i, res) in response.into_iter().enumerate() {
-            assert_eq!(res, ODriveResponse::ReqReceived(i));
+        // The response should be returned in the same order as the requests made
+        for (expected_req, res) in requests.into_iter().zip(response) {
+            let (_, actual_response) = res.body();
+            assert_eq!(actual_response.is_response(&expected_req), true);
         }
     }
 }

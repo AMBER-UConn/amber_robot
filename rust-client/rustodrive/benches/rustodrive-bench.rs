@@ -13,7 +13,7 @@ fn bench_can_proxy(c: &mut Criterion) {
     use rustodrive::{
         canproxy::CANProxy,
         commands::{ODriveCommand, Write},
-        messages::ODriveCANFrame,
+        messages::CANRequest,
     };
 
     let mut can_proxy = CANProxy::new("fakecan");
@@ -25,7 +25,7 @@ fn bench_can_proxy(c: &mut Criterion) {
             let is_done_clone = is_done.clone();
 
             can_proxy.register_rw("thread 1", move |can_read_write| {
-                let can_frame = black_box(ODriveCANFrame {
+                let can_frame = black_box(CANRequest {
                     axis: 1,
                     cmd: ODriveCommand::Write(Write::SetInputVelocity),
                     data: [0; 8],

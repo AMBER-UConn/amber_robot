@@ -1,4 +1,4 @@
-use crate::{commands::{ODriveAxisState, ODriveCommand, Write}, messages::ODriveCANFrame};
+use crate::{commands::{ODriveAxisState, ODriveCommand, Write}, messages::CANRequest};
 
 
 pub type AxisID = usize;
@@ -17,8 +17,8 @@ impl<'a> Axis<'a> {
         }
     }
 
-    pub fn set_state(&self, state: ODriveAxisState) -> ODriveCANFrame {
-        ODriveCANFrame { axis: *self.id as u32, cmd: ODriveCommand::Write(Write::SetAxisRequestedState), data: [state as u8, 0, 0, 0, 0, 0, 0, 0] }
+    pub fn set_state(&self, state: ODriveAxisState) -> CANRequest {
+        CANRequest { axis: *self.id as u32, cmd: ODriveCommand::Write(Write::SetAxisRequestedState), data: [state as u8, 0, 0, 0, 0, 0, 0, 0] }
     }
 }
 

@@ -1,15 +1,12 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap};
 
 use crate::{
-    messages::{ODriveResponse, ODriveCANFrame},
-    threads::ReadWriteCANThread, commands::{ODriveCommand, ODriveAxisState, Write},
+    messages::{CANRequest},
+    threads::ReadWriteCANThread, axis::{AxisID, Axis}, response::ODriveResponse,
 };
-
-pub type AxisID = usize;
-
 pub struct ODriveGroup<'a> {
     can: ReadWriteCANThread,
-    axes: HashMap<&'a AxisID, Axis<'a>>,
+    axes: BTreeMap<&'a AxisID, Axis<'a>>,
 }
 
 impl<'a> ODriveGroup<'a> {
@@ -20,17 +17,17 @@ impl<'a> ODriveGroup<'a> {
         }
     }
 
-    pub fn all_axes<F>(&self, f: F) -> Vec<ODriveResponse>
+    pub fn all_axes<F>(&self, mut f: F) -> Vec<ODriveResponse>
     where
-        F: FnMut(&Axis) -> ODriveCANFrame,
-    {
+        F: FnMut(&Axis) -> CANRequest,
+    {   
         let requests = self.axes.values().map(|ax| f(ax)).collect();
         self.can.request_many(requests)
     }
 
     pub fn axis<F>(&self, axis_id: &AxisID, f: F) -> ODriveResponse
     where
-        F: FnOnce(&Axis) -> ODriveCANFrame,
+        F: FnOnce(&Axis) -> CANRequest,
     {
         self.can.request(f(self.get_axis(axis_id)))
     }
@@ -41,134 +38,48 @@ impl<'a> ODriveGroup<'a> {
             None => panic!("Cannot retrieve axis {} that doesn't exist!", id)
         }
     }
+
 }
 
-struct Axis<'a> {
-    id: &'a AxisID,
-    motor: Motor<'a>,
-    encoder: Encoder<'a>,
-}
+#[cfg(test)]
+mod tests {
+    use std::sync::mpsc::channel;
 
-impl<'a> Axis<'a> {
-    pub fn new(id: &'a AxisID) -> Self {
-        Axis {
-            id,
-            motor: Motor::new(id),
-            encoder: Encoder::new(id),
+    use crate::canproxy::CANProxy;
+    use crate::messages::{CANRequest};
+    use crate::response::ResponseType;
+    use crate::tests::{wait_for_msgs};
+    use crate::commands::{ODriveAxisState::*, ODriveCommand, Write};
+
+    use super::ODriveGroup;
+
+    #[test]
+    fn test_all_axes() {
+        let mut proxy = CANProxy::new("fakecan");
+
+        let (send, rcv) = channel();
+        
+        let mut expected_requests = Vec::new();
+        for i in 0..6 {
+            expected_requests.push(CANRequest {axis: i, cmd: ODriveCommand::Write(Write::SetAxisRequestedState), data: [FullCalibrationSequence as u8, 0, 0, 0, 0, 0, 0, 0]})
         }
-    }
+        
+        proxy.register_rw("thread 1", move |can_rw| {
+            let odrives = ODriveGroup::new(can_rw, &[0, 1, 2, 3, 4, 5]);
 
-    pub fn set_state(&self, state: ODriveAxisState) -> ODriveCANFrame {
-        ODriveCANFrame { axis: *self.id as u32, cmd: ODriveCommand::Write(Write::SetAxisRequestedState), data: [state as u8, 0, 0, 0, 0, 0, 0, 0] }
-    }
-}
+            let responses = odrives.all_axes(|ax| ax.set_state(FullCalibrationSequence));
+            send.send(responses);
+        });
+        let stop_all = proxy.begin();
 
-pub trait ManyResponses {
-    fn expect_bodies(self, msg: &str) -> Vec<ODriveCANFrame>;
-}
-impl ManyResponses for Vec<ODriveResponse> {
+        // test the that all the results are returned in the order they were sent 
+        let response = wait_for_msgs(rcv);
+        stop_all().unwrap();
 
-    /// This method calls .expect() on all responses. 
-    /// This will panic if called on a response that was
-    /// read only (ex: Heartbeat)
-    fn expect_bodies(self, msg: &str) -> Vec<ODriveCANFrame> {
-        let mut frames = Vec::new();
-
-        for res in self.into_iter() {
-            match res {
-                ODriveResponse::Response(body) => frames.push(body.expect(msg)),
-                ODriveResponse::ReqReceived(_) => panic!("Write requests do not return a response body")
-            }
+        
+        for (request, response) in expected_requests.into_iter().zip(response) {
+            assert_eq!(response, Ok(ResponseType::Bodyless{req: request}));
         }
-        frames
-    }
-}
 
-struct Encoder<'a> {
-    id: &'a AxisID,
-}
-impl<'a> Encoder<'a> {
-    pub fn new(id: &'a AxisID) -> Self {
-        Encoder { id }
-    }
-    fn get_error() {
-        unimplemented!()
-    }
-    fn get_count() {
-        unimplemented!()
-    }
-    fn get_estimate() {
-        unimplemented!()
-    }
-    fn set_linear_count() {
-        unimplemented!()
-    }
-}
-
-struct Trajectory;
-impl Trajectory {
-    fn set_traj_vel_limit() {
-        unimplemented!()
-    }
-    fn set_traj_accel_limit() {
-        unimplemented!()
-    }
-    fn set_traj_inertia() {
-        unimplemented!()
-    }
-}
-
-struct Motor<'a> {
-    id: &'a AxisID,
-}
-impl<'a> Motor<'a> {
-    pub fn new(id: &'a AxisID) -> Self {
-        Motor { id }
-    }
-
-    fn get_error() {
-        unimplemented!()
-    }
-    fn get_sensorless_error() {
-        unimplemented!()
-    }
-
-    fn set_node_id() {
-        unimplemented!()
-    }
-    fn set_state() {
-        unimplemented!()
-    }
-    fn set_control_mode() {
-        unimplemented!()
-    }
-
-    fn set_input_pos() {
-        unimplemented!()
-    }
-    fn set_input_vel() {
-        unimplemented!()
-    }
-    fn set_input_torque() {
-        unimplemented!()
-    }
-
-    fn set_limits() {
-        unimplemented!()
-    } // velocity and current limit
-
-    fn get_iq_setpoint() {
-        unimplemented!()
-    }
-
-    fn set_position_gain() {
-        unimplemented!()
-    }
-    fn set_vel_gain() {
-        unimplemented!()
-    }
-
-    fn get_sensorless_estimates() {
-        unimplemented!()
     }
 }

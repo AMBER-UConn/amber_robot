@@ -1,8 +1,7 @@
 
 use std::io;
 use socketcan::{CANSocketOpenError, CANFrame};
-use crate::{cfg_match, messages::ODriveCANFrame, commands::ODriveCommand};
-use rand::seq::SliceRandom;
+use crate::{cfg_match, messages::CANRequest, commands::ODriveCommand};
 
 cfg_match! {
     feature = "mock-socket" => {
@@ -13,13 +12,13 @@ cfg_match! {
         }
 
         impl CANSocket {
-            pub fn open(ifname: &str) -> Result<Self, CANSocketOpenError> {
+            pub fn open(_ifname: &str) -> Result<Self, CANSocketOpenError> {
                 Ok(CANSocket{ waiting: Vec::new() })
             }
 
             pub fn write_frame(&mut self, frame: &CANFrame) -> io::Result<()> {
                 // The odrive only responds to Read commands, not Write. This imitates that
-                match ODriveCANFrame::from_can(&frame).cmd {
+                match CANRequest::from_can(&frame).cmd {
                     ODriveCommand::Read(_) => self.waiting.push(frame.clone()),
                     ODriveCommand::Write(_) => {},
                 }
@@ -27,13 +26,13 @@ cfg_match! {
                 Ok(())
             }
 
-            pub fn read_frame(&self) -> io::Result<CANFrame> {
-                // For the sake of testing purposes, we return an Io Error that
-                // indicates this method would be blocked if it waited. In actuality reading and writing occurs
-                // in parallel so our code would work fine otherwise
-                match self.waiting.choose(&mut rand::thread_rng()) {
+            pub fn read_frame(&mut self) -> io::Result<CANFrame> {
+                
+                // We return the last item available in order to send responses out of order
+                // since usually it would be FIFO
+                match self.waiting.pop() {
                     Some(item) => { 
-                        let mut cloned_frame = ODriveCANFrame::from_can(&item);
+                        let mut cloned_frame = CANRequest::from_can(&item);
                         
                         // We use [99; 8] just to have a response that is not the same as the request
                         cloned_frame.data = [99; 8];
@@ -42,6 +41,9 @@ cfg_match! {
                         return Ok(cloned_frame.to_can(false))
                     
                     },
+                    // For the sake of testing purposes, we return an Io Error that
+                    // indicates this method would be blocked if it waited. In actuality reading and writing occurs
+                    // in parallel so our code would work fine otherwise
                     None => return Err(io::Error::new(io::ErrorKind::WouldBlock, "no messages available")),
                 }
             }

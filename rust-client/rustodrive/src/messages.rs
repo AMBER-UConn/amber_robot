@@ -1,8 +1,9 @@
-use socketcan::CANFrame;
-
-use crate::axis::AxisID;
 use crate::commands;
 use crate::commands::ODriveCommand;
+use socketcan::CANFrame;
+
+pub type CANRequest = ODriveCANFrame;
+pub type CANResponse = ODriveCANFrame;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct ODriveCANFrame {
@@ -62,78 +63,32 @@ impl ODriveCANFrame {
         self.axis == other.axis && self.cmd == other.cmd
     }
 }
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum ODriveResponse {
-    ReqReceived(AxisID),
-    Response(Result<ODriveCANFrame, ODriveError>),
-}
-
-impl ODriveResponse {
-    /// Returns the contained [`Result<ODriveCANFrame, ODriveError>`]
-    /// consuming the `self` value
-    /// This mirrors the functionality of `.unwrap()` on an option.
-    ///
-    /// This function will panic if it is called on ['ODriveResponse::ReqReceived']
-    pub fn body(self) -> Result<ODriveCANFrame, ODriveError> {
-        match self {
-            ODriveResponse::ReqReceived(id) => panic!(
-                "called ODriveResponse::response() on a body-less response (axis {})",
-                id
-            ),
-            ODriveResponse::Response(response) => return response,
-        }
-    }
-}
-
-pub trait ManyResponses {
-    fn expect_bodies(self, msg: &str) -> Vec<ODriveCANFrame>;
-}
-impl ManyResponses for Vec<ODriveResponse> {
-    /// This method calls .expect() on all responses.
-    /// This will panic if called on a response that was
-    /// read only (ex: Heartbeat)
-    fn expect_bodies(self, msg: &str) -> Vec<ODriveCANFrame> {
-        let mut frames = Vec::new();
-
-        for res in self.into_iter() {
-            match res {
-                ODriveResponse::Response(body) => frames.push(body.expect(msg)),
-                ODriveResponse::ReqReceived(_) => {
-                    panic!("Write requests do not return a response body")
-                }
-            }
-        }
-        frames
-    }
-}
 #[derive(Clone, PartialEq, Debug)]
 pub struct ODriveMessage {
     pub thread_name: &'static str,
     pub body: ODriveCANFrame,
 }
 
-#[derive(Clone, PartialEq, Debug)]
-pub enum ODriveError {
-    FailedToSend,
-}
 
 #[cfg(test)]
 mod tests {
-    use crate::commands::{ODriveCommand, Read, Write};
+    use crate::{
+        commands::{ODriveCommand, Read, Write},
+        messages::{CANRequest, CANResponse},
+    };
 
     use super::ODriveCANFrame;
 
     #[test]
     fn test_conversion_to_frame() {
         // Tests if converting from the CAN frame and back retains the right data
-        let msg1 = ODriveCANFrame {
+        let msg1 = CANRequest {
             axis: 0x1,
             cmd: ODriveCommand::Write(Write::SetInputPosition), // this is cmd id 0x0C
             data: [0; 8],
         };
 
-        let msg2 = ODriveCANFrame {
+        let msg2 = CANRequest {
             axis: 0x293874,
             cmd: ODriveCommand::Read(Read::GetEncoderCount), // this is cmd id 0x0C
             data: [0; 8],
@@ -164,12 +119,12 @@ mod tests {
 
     #[test]
     fn test_is_response() {
-        let msg1 = ODriveCANFrame {
+        let msg1 = CANRequest {
             axis: 0x1,
             cmd: ODriveCommand::Write(Write::SetInputPosition), // this is cmd id 0x0C
             data: [0; 8],
         };
-        let fake_response = ODriveCANFrame {
+        let fake_response = CANResponse {
             axis: 0x1,
             cmd: ODriveCommand::Write(Write::SetInputPosition), // this is cmd id 0x0C
             data: [1; 8], // the data has changed but the rest is the same

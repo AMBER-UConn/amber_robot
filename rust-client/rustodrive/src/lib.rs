@@ -6,12 +6,13 @@ pub mod messages;
 pub mod odrivegroup;
 pub mod threads;
 pub mod axis;
+pub mod response;
 
 #[cfg(test)]
 pub(crate) mod tests {
     use crate::{
-        messages::{ODriveMessage, ODriveResponse},
-        threads::ReadWriteCANThread,
+        messages::{ODriveMessage},
+        threads::ReadWriteCANThread, response::ODriveResponse,
     };
     use std::sync::{
         atomic::AtomicBool,
