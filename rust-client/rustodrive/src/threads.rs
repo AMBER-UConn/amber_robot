@@ -6,7 +6,7 @@ use std::sync::{
 
 use crate::{
     commands::{self, ODriveCommand},
-    messages::{ODriveCANFrame, ODriveMessage, ODriveResponse},
+    messages::{ODriveCANFrame, ODriveMessage, CANRequest}, response::ODriveResponse,
 };
 
 pub(crate) trait CANThreadCommunicator {
@@ -31,7 +31,7 @@ pub(crate) trait CANThreadCommunicator {
         }
     }
 
-    fn thread_to_proxy(&self, frame: ODriveCANFrame) {
+    fn thread_to_proxy(&self, frame: CANRequest) {
         let can_send = self.get_requester();
 
         // take the message and send it over the channel
@@ -54,7 +54,7 @@ pub(crate) trait CANThreadCommunicator {
 
     /// This sends all the messages specified and waits until responses have been
     /// received for all of them.
-    fn request_many(&self, requests: Vec<ODriveCANFrame>) -> Vec<ODriveResponse> {
+    fn request_many(&self, requests: Vec<CANRequest>) -> Vec<ODriveResponse> {
 
         // Send off all the messages
         let num_messages = requests.len();
@@ -69,11 +69,13 @@ pub(crate) trait CANThreadCommunicator {
             responses.push(self.proxy_to_thread());
         }
 
+        // Order the responses based on the order they were sent
+
         responses
     }
 
     /// This sends a CANFrame and waits for a response back
-    fn request(&self, msg: ODriveCANFrame) -> ODriveResponse {
+    fn request(&self, msg: CANRequest) -> ODriveResponse {
         self.thread_to_proxy(msg);
         self.proxy_to_thread()
     }
@@ -123,11 +125,11 @@ impl ReadWriteCANThread {
     ) -> Self {
         CANThreadCommunicator::new(thread_name, requester, receiver, threads_alive)
     }
-    pub fn request(&self, msg: ODriveCANFrame) -> ODriveResponse {
+    pub fn request(&self, msg: CANRequest) -> ODriveResponse {
         CANThreadCommunicator::request(self, msg)
     }
 
-    pub fn request_many(&self, messages: Vec<ODriveCANFrame>) -> Vec<ODriveResponse> {
+    pub fn request_many(&self, messages: Vec<CANRequest>) -> Vec<ODriveResponse> {
         CANThreadCommunicator::request_many(self, messages)
     }
 
@@ -184,7 +186,7 @@ impl ReadOnlyCANThread {
     pub fn request(&self, axis: u32, cmd: commands::Read) -> ODriveResponse {
         CANThreadCommunicator::request(
             self,
-            ODriveCANFrame {
+            CANRequest {
                 axis,
                 cmd: commands::ODriveCommand::Read(cmd),
                 data: [0; 8],
@@ -212,13 +214,13 @@ impl ReadOnlyCANThread {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{atomic::AtomicBool, Arc};
+    use std::{sync::{atomic::AtomicBool, Arc}};
 
     use crate::{
         commands::{ODriveCommand, Read},
-        messages::{ODriveCANFrame, ODriveError, ODriveMessage, ODriveResponse},
+        messages::{ODriveMessage, CANRequest},
         tests::ThreadStub,
-        threads::CANThreadCommunicator,
+        threads::CANThreadCommunicator, response::{ODriveResponse, ErrorResponse, ODriveError},
     };
 
     #[test]
@@ -227,7 +229,7 @@ mod tests {
         let thread = ThreadStub::new("test", threads_running);
         
 
-        let can_frame = ODriveCANFrame {
+        let can_frame = CANRequest {
             axis: 1,
             cmd: ODriveCommand::Read(Read::Heartbeat),
             data: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -250,7 +252,8 @@ mod tests {
         let threads_running = Arc::new(AtomicBool::new(true));
         let thread = ThreadStub::new("test", threads_running.clone());
 
-        let response = ODriveResponse::Response(Err(ODriveError::FailedToSend));
+        let fake_request = CANRequest {axis: 1, cmd: ODriveCommand::Read(Read::EncoderError), data: [0;8]};
+        let response = Err(ErrorResponse{ request: fake_request, err: ODriveError::FailedToSend});
 
         thread.proxy_sender.send(response.clone());
         let response_received = thread.rw_communicator.proxy_to_thread();
