@@ -4,7 +4,8 @@ pub mod commands;
 pub(crate) mod macros;
 pub mod messages;
 pub mod odrivegroup;
-pub(crate) mod threads;
+pub mod threads;
+pub mod axis;
 
 #[cfg(test)]
 pub(crate) mod tests {
@@ -40,6 +41,17 @@ pub(crate) mod tests {
                     thread_receiver,
                     threads_alive,
                 ),
+            }
+        }
+    }
+
+    pub fn wait_for_msgs<T>(receiver: Receiver<T>) -> T {
+        loop {
+            match receiver.try_recv() {
+                Ok(res) => {
+                    return res;
+                }
+                Err(_) => continue,
             }
         }
     }

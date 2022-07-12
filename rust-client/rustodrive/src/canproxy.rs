@@ -456,7 +456,7 @@ mod tests {
 
     use crate::{
         commands::{ODriveCommand, Read, Write},
-        messages::{ODriveCANFrame, ODriveResponse},
+        messages::{ODriveCANFrame, ODriveResponse}, tests::wait_for_msgs,
     };
 
     use super::CANProxy;
@@ -534,16 +534,8 @@ mod tests {
         let stop_proxy = can_proxy.begin();
 
         // Keep looping on this thread until it sends a response back through the channel
-        let response: ODriveResponse;
-        loop {
-            match rcv.try_recv() {
-                Ok(res) => {
-                    response = res;
-                    break;
-                }
-                Err(_) => continue,
-            }
-        }
+        let response = wait_for_msgs(rcv);
+        stop_proxy().unwrap();
 
         // Assert the response body is the same as the CANFrame that was sent in the request
         // because it was a read request using mock-socket
@@ -552,7 +544,6 @@ mod tests {
         assert_eq!(request.cmd, body.cmd);
         assert_ne!(request.data, body.data);
 
-        stop_proxy();
     }
 
     #[test]
@@ -578,22 +569,13 @@ mod tests {
         let stop_proxy = can_proxy.begin();
 
         // Keep looping on this thread until it sends a response back through the channel
-        let response: ODriveResponse;
-        loop {
-            match rcv.try_recv() {
-                Ok(res) => {
-                    response = res;
-                    break;
-                }
-                Err(_) => continue,
-            }
-        }
+        let response = wait_for_msgs(rcv);
+        stop_proxy().unwrap();
 
         // Assert the response body is the same as the CANFrame that was sent in the request
         // because it was a read request using mock-socket
-        assert_eq!(response, ODriveResponse::ReqReceived);
+        assert_eq!(response, ODriveResponse::ReqReceived(request.axis as usize));
 
-        stop_proxy().unwrap();
     }
 
     #[test]
@@ -616,7 +598,7 @@ mod tests {
 
         // Create thread to send a set of messages and get their responses
         can_proxy.register_rw("thread 1", move |can_read_write| {
-            let mut responses = can_read_write.request_many(requests_copy);
+            let responses = can_read_write.request_many(requests_copy);
             send.send(responses).unwrap()
         });
 
@@ -624,23 +606,12 @@ mod tests {
         let stop_all = can_proxy.begin();
 
         // Keep looping on this thread until it sends a response back through the channel
-        let response: Vec<ODriveResponse>;
-        loop {
-            match rcv.try_recv() {
-                Ok(res) => {
-                    response = res;
-                    break;
-                }
-                Err(_) => continue,
-            }
-        }
+        let response = wait_for_msgs(rcv);
+        stop_all().unwrap();
 
         // the mock-socket feature should return the same message sent in as the response
-        for res in response {
-            assert_eq!(res, ODriveResponse::ReqReceived);
+        for (i, res) in response.into_iter().enumerate() {
+            assert_eq!(res, ODriveResponse::ReqReceived(i));
         }
-
-        // send the signal for all threads to stop
-        stop_all().unwrap();
     }
 }
