@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("\nQuitting the program {:?}", sig);
         break;
     }
-
+    stop_all().unwrap();
     println!("all done!");
     Ok(())
 }
@@ -30,9 +30,6 @@ fn odrive_main(can_read_write: ReadWriteCANThread) {
     println!("Starting calibration sequence");
     odrives.all_axes(|ax| ax.set_state(FullCalibrationSequence));
     println!("Finished calibration sequence");
-
-    let speeds_iter = [10, 10, 10, 10].iter();
-    odrives.all_axes(|ax| speeds_iter.next());
 
     println!("Motors fully calibrated!")
 }
