@@ -35,7 +35,7 @@ class RoverMotorConfig:
     VBUS_VOLTAGE = 24
     CAN_BAUD_RATE = 250000
 
-    def __init__(self, axis_num, sensorless=False):
+    def __init__(self, axis_num, sensorless = False):
         """
         Initalizes RoverMotorConfig class by finding odrive, erase its 
         configuration, and grabbing specified axis object.
@@ -95,10 +95,8 @@ class RoverMotorConfig:
         self.axis.motor.config.motor_type = MOTOR_TYPE_HIGH_CURRENT
 
     def config_encoder(self):
-        # TODO encoder setup
-        if self.axis.config.enable_sensorless_mode:
-            return
-        # the count per revolution is 4 * the ppr of the encoder
+        if self.axis.config.enable_sensorless_mode: return
+
         self.axis.encoder.config.cpr = RoverMotorConfig.ENCODER_CPR
         self.axis.encoder.config.use_index = True
 
@@ -109,10 +107,9 @@ class RoverMotorConfig:
         self.axis.controller.config.vel_integrator_gain = 0.05
         self.axis.controller.config.control_mode = CONTROL_MODE_VELOCITY_CONTROL
 
-        # 5 turns_per_sec / (2 * 3.14159265 * NUM_POLES / 2)
         self.axis.controller.config.vel_limit = 50
-        self.axis.sensorless_estimator.config.pm_flux_linkage = 5.51328895422 / \
-            (2 * RoverMotorConfig.NUM_POLES * RoverMotorConfig.MOTOR_KV)
+        # 5 turns_per_sec / (2 * 3.14159265 * NUM_POLES / 2)
+        self.axis.sensorless_estimator.config.pm_flux_linkage = 5.51328895422 / (2 * RoverMotorConfig.NUM_POLES * RoverMotorConfig.MOTOR_KV)
 
     def config_CAN(self, can_axis_id):
         self.odrv.can.config.baud_rate = RoverMotorConfig.CAN_BAUD_RATE
@@ -133,14 +130,13 @@ class RoverMotorConfig:
         self.axis.requested_state = AXIS_STATE_MOTOR_CALIBRATION
 
         # Wait for calibration to take place
-        #print(self.axis.motor.config.phase_inductance)
         wait_until(lambda : self.axis.motor.config.phase_inductance != 0)
-        print(self.axis.motor.config.phase_inductance)
+        print("phase inductance: {}".format(self.axis.motor.config.phase_inductance))
 
         if self.check_error(self.axis.motor):
             self.axis.motor.config.pre_calibrated = True
 
-    def encoder_calib(self, use_index=True):
+    def encoder_calib(self, use_index=True, sensorless_enc_error = True):
         self.axis = self.get_axis(self.axis_num, self.get_odrive())
         if use_index:
             self.axis.encoder.config.use_index = True
@@ -151,14 +147,21 @@ class RoverMotorConfig:
 
         print("Calibrating Encoder {} (The motor should rotate back-and-forth)...".format(self.axis_num))
         self.axis.requested_state = AXIS_STATE_ENCODER_OFFSET_CALIBRATION
+        #waits until encoder finishes calibrating or throws an error
         wait_until(
             lambda :
-            abs(self.axis.encoder.config.direction) == 1 and
-            self.axis.encoder.config.phase_offset != 0
+            (abs(self.axis.encoder.config.direction) == 1 and
+            self.axis.encoder.config.phase_offset != 0) or
+            self.axis.encoder.error != 0
             )
 
         if self.check_error(self.axis.encoder):
             self.axis.encoder.config.pre_calibrated = True
+        elif sensorless_enc_error:
+            print("Encoder Error, reverting to sensorless mode...")
+            self.sensorless = True
+            self.config_sensorless()
+            #If there is an encoder error (i.e. encoder isn't detected), the motor becomes sensorless
             
 
     def run_calib(self):
