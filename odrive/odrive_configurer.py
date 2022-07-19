@@ -22,34 +22,35 @@ from fibre.libfibre import ObjectLostError
 import time
 import sys
 
+
 class RoverMotorConfig:
     """
     Class for configuring an Odrive axis for a Amber motor. 
     Only works with one Odrive at a time.
     """
-    ######## 
+    ########
     MOTOR_KV = 300
-    ENCODER_PPR = 5000 # pulses per revolution
+    ENCODER_CPR = 8192  # counts per revolution for the AMT - 102 Encoder
     NUM_POLES = 24
     VBUS_VOLTAGE = 24
     CAN_BAUD_RATE = 250000
 
-    def __init__(self, odrv, axis_num):
+    def __init__(self, axis_num, sensorless=False):
         """
         Initalizes RoverMotorConfig class by finding odrive, erase its 
         configuration, and grabbing specified axis object.
-        
+
         :param axis_num: Which channel/motor on the odrive your referring to.
         :type axis_num: int (0 or 1)
         """
         self.axis_num = axis_num
         self.axis = None
         self.odrv = self.get_odrive()
-    
-        # Connect to Odrive
-        
-        self.axis = self.get_axis(self.axis_num, self.odrv)
+        self.sensorless = sensorless
 
+        # Connect to Odrive
+
+        self.axis = self.get_axis(self.axis_num, self.odrv)
 
     @classmethod
     def get_odrive(cls):
@@ -64,75 +65,119 @@ class RoverMotorConfig:
         return getattr(odrv, f"axis{axis_num}")
 
     def configure(self, CAN_id):
-        self.odrv.config.enable_brake_resistor = True # This is to lower the amount of power going back into the odrive when the motor is braking
-        
+        # This is to lower the amount of power going back into the odrive when the motor is braking
+        self.odrv.config.enable_brake_resistor = True
+
         self.config_motors()
-        self.config_sensorless()
+        self.config_sensorless() if self.sensorless else self.config_encoder()
         self.config_CAN(CAN_id)
 
         self.odrv.config.brake_resistance = 1
         self.axis.controller.config.input_mode = INPUT_MODE_VEL_RAMP
 
-        try:
-            self.odrv.save_configuration()
-        except ObjectLostError:
-            pass
+        self.save()
 
     def config_motors(self):
-        self.axis.motor.config.current_lim = 9 # The motors have a peak current of 9 amps
+        # The motors have a peak current of 9 amps
+        self.axis.motor.config.current_lim = 9
         self.axis.motor.config.requested_current_range = 10
 
-        self.axis.controller.config.vel_limit = 50 # The speed of the motor will be limited to this speed in [turns/sec]
-        self.axis.motor.config.pole_pairs = RoverMotorConfig.NUM_POLES / 2 # The MN4004 has 24 magnet poles, so 12 pole pairs
-        self.axis.motor.config.calibration_current = 2 # The MN4004 has an idle current of 0.2 A but we set it at 2 for it to go faster during calibration
-        self.axis.motor.config.torque_constant = 8.27 / RoverMotorConfig.MOTOR_KV # this is specified in the odrive documentation
+        # The speed of the motor will be limited to this speed in [turns/sec]
+        self.axis.controller.config.vel_limit = 50
+        self.axis.motor.config.pole_pairs = RoverMotorConfig.NUM_POLES / \
+            2  # The MN4004 has 24 magnet poles, so 12 pole pairs
+        # The MN4004 has an idle current of 0.2 A but we set it at 2 for it to go faster during calibration
+        self.axis.motor.config.calibration_current = 2
+        # this is specified in the odrive documentation
+        self.axis.motor.config.torque_constant = 8.27 / RoverMotorConfig.MOTOR_KV
         # self.axis.motor.config.resistance_calib_max_voltage = 0.4 * VBUS_VOLTAGE ****do not use
 
         self.axis.motor.config.motor_type = MOTOR_TYPE_HIGH_CURRENT
 
     def config_encoder(self):
-        ### TODO encoder setup
-        # self.axis.encoder.config.cpr = 4 * ENCODER_PPR # the count per revolution is 4 * the ppr of the encoder
-        pass
+        # TODO encoder setup
+        if self.axis.config.enable_sensorless_mode:
+            return
+        # the count per revolution is 4 * the ppr of the encoder
+        self.axis.encoder.config.cpr = RoverMotorConfig.ENCODER_CPR
+        self.axis.encoder.config.use_index = True
 
     def config_sensorless(self):
+        self.axis.config.enable_sensorless_mode = True
+
         self.axis.controller.config.vel_gain = 0.01
         self.axis.controller.config.vel_integrator_gain = 0.05
         self.axis.controller.config.control_mode = CONTROL_MODE_VELOCITY_CONTROL
 
-        self.axis.controller.config.vel_limit = 50 # 5 turns_per_sec / (2 * 3.14159265 * NUM_POLES / 2)
-        self.axis.sensorless_estimator.config.pm_flux_linkage = 5.51328895422 / (2 * RoverMotorConfig.NUM_POLES * RoverMotorConfig.MOTOR_KV)
-        self.axis.config.enable_sensorless_mode = True
+        # 5 turns_per_sec / (2 * 3.14159265 * NUM_POLES / 2)
+        self.axis.controller.config.vel_limit = 50
+        self.axis.sensorless_estimator.config.pm_flux_linkage = 5.51328895422 / \
+            (2 * RoverMotorConfig.NUM_POLES * RoverMotorConfig.MOTOR_KV)
 
     def config_CAN(self, can_axis_id):
         self.odrv.can.config.baud_rate = RoverMotorConfig.CAN_BAUD_RATE
         self.axis.config.can.node_id = can_axis_id
 
-    def run_motor_calib(self):
-        input("Make sure the motor is free to move, then press enter...")
-        
-        print("Calibrating Odrive for motor (you should hear a "
-        "beep)...")
+    def check_error(self, obj):
+        if hasattr(obj, "error"):
+            if obj.error != 0:
+                print("\nERROR \n"
+                      "ODrive reported error {}.\n"
+                      "Dumping object data:\n{}\n".format(obj.error, obj))
+                return False
+        return True
+
+    def motor_calib(self):
+        print("\nCalibrating Motor {} (You should hear a beep)...".format(self.axis_num))
         self.axis = self.get_axis(self.axis_num, self.get_odrive())
-        self.axis.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE
-        
+        self.axis.requested_state = AXIS_STATE_MOTOR_CALIBRATION
+
         # Wait for calibration to take place
-        time.sleep(10)
-        # TODO the calibration sequence does not appear to work properly
+        #print(self.axis.motor.config.phase_inductance)
+        wait_until(lambda : self.axis.motor.config.phase_inductance != 0)
+        print(self.axis.motor.config.phase_inductance)
 
-        
+        if self.check_error(self.axis.motor):
+            self.axis.motor.config.pre_calibrated = True
 
-        if self.axis.motor.error != 0:
-            print("Error: Odrive reported an error of {} while in the state " 
-            "AXIS_STATE_MOTOR_CALIBRATION. Printing out Odrive motor data for "
-            "debug:\n{}".format(self.axis.motor.error, 
-                                self.axis.motor))
+    def encoder_calib(self, use_index=True):
+        self.axis = self.get_axis(self.axis_num, self.get_odrive())
+        if use_index:
+            self.axis.encoder.config.use_index = True
+            print("Rotating Encoder {} back to index...".format(self.axis_num))
+            self.axis.requested_state = AXIS_STATE_ENCODER_INDEX_SEARCH
+            time.sleep(3)
+
+
+        print("Calibrating Encoder {} (The motor should rotate back-and-forth)...".format(self.axis_num))
+        self.axis.requested_state = AXIS_STATE_ENCODER_OFFSET_CALIBRATION
+        wait_until(
+            lambda :
+            abs(self.axis.encoder.config.direction) == 1 and
+            self.axis.encoder.config.phase_offset != 0
+            )
+
+        if self.check_error(self.axis.encoder):
+            self.axis.encoder.config.pre_calibrated = True
             
-            sys.exit(1)
 
-        # If all looks good, then lets tell ODrive that saving this calibration 
-        # to persistent memory is OK
-        self.axis.motor.config.pre_calibrated = True
+    def run_calib(self):
+        self.motor_calib()
+        self.encoder_calib() if not(self.sensorless) else None
+        self.save()
+
+    def save(self):
+        try:
+            self.get_odrive().save_configuration()
+        except ObjectLostError:
+            pass
+
+def wait_until(cond, sec_limit: float = 10.0):
+    tick = 0
+    while not(cond()) and tick < sec_limit:
+        time.sleep(0.1)
+        tick += 0.1
+    print("wait timed out") if tick >= sec_limit else None
 
 if __name__ == "__main__":
     odrv = RoverMotorConfig.get_odrive()
@@ -141,18 +186,20 @@ if __name__ == "__main__":
         odrv.erase_configuration()
     except:
         pass
-    
+
     odrv_can_id = 2 * int(input("ODrive CAN ID > "))
 
-    odrive_config1 = RoverMotorConfig(odrv, axis_num = 0)
+    odrive_config1 = RoverMotorConfig(axis_num=0)
     odrive_config1.configure(CAN_id=odrv_can_id)
-    
-    odrive_config2 = RoverMotorConfig(odrv, axis_num = 1)
-    odrive_config2.configure(CAN_id=odrv_can_id + 1)
 
+    odrive_config2 = RoverMotorConfig(axis_num=1)
+    odrive_config2.configure(CAN_id=odrv_can_id + 1)
     odrv = RoverMotorConfig.get_odrive()
 
-    odrive_config1.run_motor_calib()
-    odrive_config2.run_motor_calib()
 
-    
+    input("Make sure the motor is free to move, then press enter...")
+
+    odrive_config1.run_calib()
+    odrive_config2.run_calib()
+
+    print("Calibration Complete!")
