@@ -55,7 +55,7 @@ class RoverMotorConfig:
         self.axis = self.get_axis(self.axis_num, self.odrv)
 
     @classmethod
-    def get_odrive(cls, output):
+    def get_odrive(cls, output = True):
         # connect to Odrive
         print("Looking for ODrive...") if output else None
         odrv = odrive.find_any()
