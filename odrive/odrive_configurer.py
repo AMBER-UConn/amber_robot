@@ -35,7 +35,8 @@ class RoverMotorConfig:
     VBUS_VOLTAGE = 24
     CAN_BAUD_RATE = 250000
 
-    def __init__(self, axis_num, sensorless = False):
+
+    def __init__(self, axis_num, sensorless = False, _output = True):
         """
         Initalizes RoverMotorConfig class by finding odrive, erase its 
         configuration, and grabbing specified axis object.
@@ -45,19 +46,20 @@ class RoverMotorConfig:
         """
         self.axis_num = axis_num
         self.axis = None
-        self.odrv = self.get_odrive()
+        self.odrv = self.get_odrive(_output)
         self.sensorless = sensorless
 
+        self.output = _output
         # Connect to Odrive
 
         self.axis = self.get_axis(self.axis_num, self.odrv)
 
     @classmethod
-    def get_odrive(cls):
+    def get_odrive(cls, output):
         # connect to Odrive
-        print("Looking for ODrive...")
+        print("Looking for ODrive...") if output else None
         odrv = odrive.find_any()
-        print("Found ODrive.")
+        print("Found ODrive.") if output else None
         return odrv
 
     @classmethod
@@ -98,6 +100,7 @@ class RoverMotorConfig:
         if self.axis.config.enable_sensorless_mode: return
 
         self.axis.encoder.config.cpr = RoverMotorConfig.ENCODER_CPR
+        #self.axis.encoder.config.mode = ENCODER_MODE_INCREMENTAL
         self.axis.encoder.config.use_index = True
 
     def config_sensorless(self):
@@ -182,7 +185,7 @@ def wait_until(cond, sec_limit: float = 10.0):
         tick += 0.1
     print("wait timed out") if tick >= sec_limit else None
 
-if __name__ == "__main__":
+def main():
     odrv = RoverMotorConfig.get_odrive()
     print("Erasing pre-existing configuration...")
     try:
@@ -206,3 +209,7 @@ if __name__ == "__main__":
     odrive_config2.run_calib()
 
     print("Calibration Complete!")
+
+
+if __name__ == "__main__":
+    main()
