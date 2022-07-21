@@ -74,6 +74,12 @@ class RoverMotorConfig:
         self.config_sensorless() if self.sensorless else self.config_encoder()
         self.config_CAN(CAN_id)
 
+        self.axis.controller.config.vel_gain = 0.01
+        self.axis.controller.config.vel_integrator_gain = 0.05
+        self.axis.controller.config.control_mode = CONTROL_MODE_VELOCITY_CONTROL
+        self.axis.controller.config.vel_limit = 50
+
+
         self.odrv.config.brake_resistance = 1
         self.axis.controller.config.input_mode = INPUT_MODE_VEL_RAMP
 
@@ -106,11 +112,6 @@ class RoverMotorConfig:
     def config_sensorless(self):
         self.axis.config.enable_sensorless_mode = True
 
-        self.axis.controller.config.vel_gain = 0.01
-        self.axis.controller.config.vel_integrator_gain = 0.05
-        self.axis.controller.config.control_mode = CONTROL_MODE_VELOCITY_CONTROL
-
-        self.axis.controller.config.vel_limit = 50
         # 5 turns_per_sec / (2 * 3.14159265 * NUM_POLES / 2)
         self.axis.sensorless_estimator.config.pm_flux_linkage = 5.51328895422 / (2 * RoverMotorConfig.NUM_POLES * RoverMotorConfig.MOTOR_KV)
 

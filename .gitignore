@@ -2,3 +2,5 @@ rosrust/
 .vscode/
 .history/
 target/
+
+*.pyc

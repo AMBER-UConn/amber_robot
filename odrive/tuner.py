@@ -17,6 +17,8 @@ from odrive.enums import *
 import keyboard as kb
 from time import sleep
 
+#from odrive_sim import *
+
 class FORM:
     DEF = "\033[0m"
     BOLD = "\033[1m"
@@ -67,6 +69,7 @@ class UI:
 
     def tuner():
         axis_id = UI.axis_select()
+        #axis = 
         axis = RMC(axis_id, _output = False).axis
         con_config = axis.controller.config
         
@@ -74,21 +77,21 @@ class UI:
 
         #DEFAULT VALUES
         con_config.pos_gain = 20.0
-        con_config.vel_gain = 0.16
-        con_config.vel_integrator_gain = 0.32
+        con_config.vel_gain = 0.01
+        con_config.vel_integrator_gain = 0.05
 
         con_id = 0 # 0 - Velocity Control, 1 - Position Control
         shift_was_pressed = False
         cl_was_pressed = False
         closed_loop = False
-        print("\nCTRL - Increase Value\t\t"
-              "Alt - Decrease Value\t\t"
-              "Shift - Change Control Type + Value to Tune\t\t"
+        print("\nCTRL - Increase Value\t"
+              "Alt - Decrease Value\t"
+              "Shift - Change Control Type + Value to Tune\t"
               "Z - Toggle Control Loop")
         while True:
             #con_id = con_id % 2
 
-            printl("{}\t\tvel_gain: {}\t\tpos_gain: {}\t\tclosed loop: {}".format(control_types[con_id],
+            printl("{}\tvel_gain: {:.5f}\tpos_gain: {:.5f}\tclosed loop: {}".format(control_types[con_id],
                                                                                   con_config.vel_gain,
                                                                                   con_config.pos_gain,
                                                                                   closed_loop))
@@ -127,6 +130,9 @@ class UI:
             else:
                 shift_was_pressed = False
 
+            if kb.is_pressed("q"):
+                break
+
 
             match con_id:
                 case 0: #vel_gain
@@ -134,12 +140,14 @@ class UI:
                 case 1: #pos_gain
                     con_config.control_mode = CONTROL_MODE_POSITION_CONTROL
             
-            #Calculates vel_integrator_gain = 0.5 * vel_gain * bandwidth (in Hz)
-            con_config.vel_integrator_gain = 0.5 * con_config.vel_gain * 1/(axis.encoder.config.bandwidth/1000)
-
+            
             sleep(0.1) #Holds UI frame before refreshing
 
         #axis.requested_state = AXIS_STATE_MOTOR_CALIBRATION
+
+        #Calculates vel_integrator_gain = 0.5 * vel_gain * bandwidth (in Hz)
+        con_config.vel_integrator_gain = 0.5 * con_config.vel_gain * 1/(axis.encoder.config.bandwidth/1000)
+
 
 
 
