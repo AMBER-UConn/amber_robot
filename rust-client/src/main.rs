@@ -1,17 +1,14 @@
 use std::error::Error;
 
-use rustodrive::{commands::ODriveAxisState::*, canproxy::CANProxy, threads::ReadWriteCANThread, odrivegroup::ODriveGroup};
+use rustodrive::{commands::{ODriveAxisState::*, Write}, canproxy::CANProxy, threads::ReadWriteCANThread, odrivegroup::ODriveGroup};
 use signal_hook::{consts::SIGINT, iterator::Signals};
 
 
 fn odrive_main(can_read_write: ReadWriteCANThread) {
     let odrives = ODriveGroup::new(can_read_write, &[1, 2, 3, 4]);
 
-    println!("Starting calibration sequence");
-    odrives.all_axes(|ax| ax.set_state(FullCalibrationSequence));
-    println!("Finished calibration sequence");
-
-    println!("Motors fully calibrated!")
+    odrives.all_axes(|ax| ax.set_state(ClosedLoop));
+    odrives.all_axes(|ax| ax.send_command(Write::SetInputVelocity, 255));
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
