@@ -90,8 +90,7 @@ class UI:
               "Z - Toggle Control Loop")
         while True:
             #con_id = con_id % 2
-
-            printl("{}\tvel_gain: {:.5f}\tpos_gain: {:.5f}\tclosed loop: {}".format(control_types[con_id],
+            printl("\x1b[2K{}\tvel_gain: {:.5f}\tpos_gain: {:.5f}\tclosed loop: {}".format(control_types[con_id],
                                                                                   con_config.vel_gain,
                                                                                   con_config.pos_gain,
                                                                                   closed_loop))
@@ -130,6 +129,10 @@ class UI:
             else:
                 shift_was_pressed = False
 
+            if kb.is_pressed("h"):
+                if con_id is 0:
+                    con_config.vel_gain /= 2
+
             if kb.is_pressed("q"):
                 break
 
@@ -142,13 +145,19 @@ class UI:
             
             
             sleep(0.1) #Holds UI frame before refreshing
+            
 
         #axis.requested_state = AXIS_STATE_MOTOR_CALIBRATION
 
         #Calculates vel_integrator_gain = 0.5 * vel_gain * bandwidth (in Hz)
         con_config.vel_integrator_gain = 0.5 * con_config.vel_gain * 1/(axis.encoder.config.bandwidth/1000)
-
-
+    
+        try:
+            RMC.get_odrive().save_configuration()
+        except configurer.ObjectLostError:
+            pass
+        print("SAVED!")
+        UI.tuner()
 
 
 if __name__ == "__main__":
