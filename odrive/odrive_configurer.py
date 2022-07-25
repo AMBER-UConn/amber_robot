@@ -15,6 +15,7 @@ setup.setup_axes(odrv0, [odrv0.axis0, odrv0.axis1])
 ```
 """
 
+from tkinter import S
 from typing import List
 from odrive.enums import *
 import odrive
@@ -81,6 +82,13 @@ class RoverMotorConfig:
 
         self.odrv.config.brake_resistance = 1
         self.axis.controller.config.input_mode = INPUT_MODE_VEL_RAMP
+        
+        power_supply_type = input("Enter 1 for Bench Power Supply or 2 for Battery")
+        match power_supply_type:
+            case 1:
+                self.config_motors()
+            case 2:
+                self.config_lipo_battery()
 
         self.save()
 
@@ -90,6 +98,16 @@ class RoverMotorConfig:
         self.odrv.config.dc_max_positive_current = 10
         self.odrv.config.dc_max_negative_current = -1
 
+    def config_lipo_battery(self):
+        print("Please enter battery ratings as asked.")
+        batt_n_cells = int(input("Enter number of cells in series: "))
+        batt_capacity = int(input("Enter battery capacity in mAh: ")) / 1000
+        self.odrv.config.dc_bus_undervoltage_trip_level = 3.3 * batt_n_cells
+        self.odrv.config.dc_bus_overvoltage_trip_level = 4.25 * batt_n_cells
+        self.odrv.config.dc_max_positive_current = batt_capacity * 50
+        self.odrv.config.dc_max_negative_current = -batt_capacity * 1 # CHECK THIS CAREFULLY
+
+    
     def config_motors(self):
         # The motors have a peak current of 9 amps
         self.axis.motor.config.current_lim = 9
@@ -97,10 +115,13 @@ class RoverMotorConfig:
 
         # The speed of the motor will be limited to this speed in [turns/sec]
         self.axis.controller.config.vel_limit = 50
-        self.axis.motor.config.pole_pairs = RoverMotorConfig.NUM_POLES / \
-            2  # The MN4004 has 24 magnet poles, so 12 pole pairs
+        self.axis.motor.config.pole_pairs = RoverMotorConfig.NUM_POLES / 2 # The MN4004 has 24 magnet poles, so 12 pole pairs
         # The MN4004 has an idle current of 0.2 A but we set it at 2 for it to go faster during calibration
         self.axis.motor.config.calibration_current = 2
+        
+        self.axis.config.calibration_lockin.current = 2
+        # to avoid motors from heating up when finding index (ENCODER_INDEX_SEARCH)
+        
         # this is specified in the odrive documentation
         self.axis.motor.config.torque_constant = 8.27 / RoverMotorConfig.MOTOR_KV
         # self.axis.motor.config.resistance_calib_max_voltage = 0.4 * VBUS_VOLTAGE ****do not use
@@ -210,10 +231,10 @@ def main():
 
     odrv_can_id = 2 * int(input("ODrive CAN ID > "))
 
-    odrive_config1 = RoverMotorConfig(axis_num=0)
+    odrive_config1 = RoverMotorConfig(axis_num=0, sensorless=True)
     odrive_config1.configure(CAN_id=odrv_can_id)
 
-    odrive_config2 = RoverMotorConfig(axis_num=1)
+    odrive_config2 = RoverMotorConfig(axis_num=1, sensorless=False)
     odrive_config2.configure(CAN_id=odrv_can_id + 1)
     odrv = RoverMotorConfig.get_odrive()
 
