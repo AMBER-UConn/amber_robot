@@ -5,10 +5,13 @@ use signal_hook::{consts::SIGINT, iterator::Signals};
 
 
 fn odrive_main(can_read_write: ReadWriteCANThread) {
-    let odrives = ODriveGroup::new(can_read_write, &[1, 2, 3, 4]);
+    let odrives = ODriveGroup::new(can_read_write, &[0, 1]);
 
     odrives.all_axes(|ax| ax.set_state(ClosedLoop));
-    odrives.all_axes(|ax| ax.send_command(Write::SetInputVelocity, 255));
+    odrives.all_axes(|ax| ax.send_command(Write::SetInputVelocity, [0, 0, 0xa0 as u8, 0x40 as u8, 0, 0, 0, 0]));
+    println!("{}", 5.3f32);
+    
+    //InputVel when [1; 8]: [1.40e-45, 3.59e-43, 9.18e-41, 2.35e-38, 0, 0, 0, 0]
 }
 
 fn main() -> Result<(), Box<dyn Error>> {

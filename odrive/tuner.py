@@ -30,7 +30,7 @@ def format(text: str, form: FORM = FORM.DEF):
     return form + text + FORM.DEF
 
 def printl(x):
-    print(x, end = "\r")
+    print("\x1b[2K{}".format(x), end = "\r")
 
 
 class UI:
@@ -90,7 +90,7 @@ class UI:
               "Z - Toggle Control Loop")
         while True:
             #con_id = con_id % 2
-            printl("\x1b[2K{}\tvel_gain: {:.5f}\tpos_gain: {:.5f}\tclosed loop: {}".format(control_types[con_id],
+            printl("{}\tvel_gain: {:.5f}\tpos_gain: {:.5f}\tclosed loop: {}".format(control_types[con_id],
                                                                                   con_config.vel_gain,
                                                                                   con_config.pos_gain,
                                                                                   closed_loop))

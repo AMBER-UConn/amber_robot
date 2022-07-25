@@ -24,12 +24,12 @@ impl<'a> Axis<'a> {
     }
 
 
-    pub fn send_command(&self, command: Write, data: u8) -> CANRequest {
-        CANRequest { axis: *self.id as u32, cmd: ODriveCommand::Write(command), data: [data, 0, 0, 0, 0, 0, 0, 0] }
+    pub fn send_command(&self, command: Write, data: [u8; 8]) -> CANRequest {
+        CANRequest { axis: *self.id as u32, cmd: ODriveCommand::Write(command), data: data }
     }
     /// This generates the command to set the state for the `Axis` object in question
     pub fn set_state(&self, state: ODriveAxisState) -> CANRequest {
-        self.send_command(Write::SetAxisRequestedState, state as u8)
+        self.send_command(Write::SetAxisRequestedState, [state as u8, 0, 0, 0, 0, 0, 0, 0])
         //CANRequest { axis: *self.id as u32, cmd: ODriveCommand::Write(Write::SetAxisRequestedState), data: [state as u8, 0, 0, 0, 0, 0, 0, 0] }
     }
 
