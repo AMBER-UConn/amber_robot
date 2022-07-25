@@ -2,7 +2,7 @@ use crate::{back_to_enum, messages::{ODriveCANFrame}};
 
 back_to_enum! {
     #[derive(Copy, Clone, PartialEq, Debug, Eq, Hash)]
-    pub enum Read {
+    pub enum ReadComm {
         Heartbeat = 0x001,
         MotorError = 0x003,
         EncoderError = 0x004,
@@ -15,7 +15,7 @@ back_to_enum! {
     }
 }
 
-impl Read {
+impl ReadComm {
     pub fn to_msg(axis: u32, cmd: Self) -> ODriveCANFrame {
         ODriveCANFrame { axis, cmd: ODriveCommand::Read(cmd), data: [0; 8] }
     }
@@ -24,7 +24,7 @@ impl Read {
 
 back_to_enum! {
     #[derive(Copy, Clone, PartialEq, Debug, Eq, Hash)]
-    pub enum Write {
+    pub enum WriteComm {
         EStop = 0x002,
 
         SetAxisNodeID = 0x006,
@@ -47,7 +47,7 @@ back_to_enum! {
     }
 }
 
-impl Write {
+impl WriteComm {
     pub fn to_msg(axis: u32, cmd: Self, data: [u8; 8]) -> ODriveCANFrame {
         ODriveCANFrame { axis, cmd: ODriveCommand::Write(cmd), data }
     }
@@ -57,8 +57,8 @@ impl Write {
 /// Documentation: <https://docs.odriverobotics.com/v/latest/can-protocol.html#messages>
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
 pub enum ODriveCommand {
-    Read(Read),
-    Write(Write),
+    Read(ReadComm),
+    Write(WriteComm),
 }
 
 back_to_enum! {

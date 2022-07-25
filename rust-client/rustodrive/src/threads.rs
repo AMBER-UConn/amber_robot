@@ -199,7 +199,7 @@ impl ReadOnlyCANThread {
     ) -> Self {
         CANThreadCommunicator::new(thread_name, requester, receiver, threads_alive)
     }
-    pub fn request(&self, axis: u32, cmd: commands::Read) -> ODriveResponse {
+    pub fn request(&self, axis: u32, cmd: commands::ReadComm) -> ODriveResponse {
         CANThreadCommunicator::request(
             self,
             CANRequest {
@@ -210,7 +210,7 @@ impl ReadOnlyCANThread {
         )
     }
 
-    pub fn request_many(&self, messages: Vec<(u32, commands::Read)>) -> Vec<ODriveResponse> {
+    pub fn request_many(&self, messages: Vec<(u32, commands::ReadComm)>) -> Vec<ODriveResponse> {
         let requests = messages
             .iter()
             .map(|(axis, cmd)| ODriveCANFrame {
@@ -233,7 +233,7 @@ mod tests {
     use std::{sync::{atomic::AtomicBool, Arc}};
 
     use crate::{
-        commands::{ODriveCommand, Read},
+        commands::{ODriveCommand, ReadComm},
         messages::{ODriveMessage, CANRequest},
         tests::ThreadStub,
         threads::CANThreadCommunicator, response::{ODriveResponse, ErrorResponse, ODriveError},
@@ -247,7 +247,7 @@ mod tests {
 
         let can_frame = CANRequest {
             axis: 1,
-            cmd: ODriveCommand::Read(Read::Heartbeat),
+            cmd: ODriveCommand::Read(ReadComm::Heartbeat),
             data: [0, 0, 0, 0, 0, 0, 0, 0],
         };
         let expected_msg = ODriveMessage {
@@ -268,7 +268,7 @@ mod tests {
         let threads_running = Arc::new(AtomicBool::new(true));
         let thread = ThreadStub::new("test", threads_running.clone());
 
-        let fake_request = CANRequest {axis: 1, cmd: ODriveCommand::Read(Read::EncoderError), data: [0;8]};
+        let fake_request = CANRequest {axis: 1, cmd: ODriveCommand::Read(ReadComm::EncoderError), data: [0;8]};
         let response = Err(ErrorResponse{ request: fake_request, err: ODriveError::FailedToSend});
 
         thread.proxy_sender.send(response.clone());

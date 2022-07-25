@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use rustodrive::{commands::{ODriveAxisState::*, Write}, canproxy::CANProxy, threads::ReadWriteCANThread, odrivegroup::ODriveGroup};
+use rustodrive::{commands::{ODriveAxisState::*, WriteComm}, canproxy::CANProxy, threads::ReadWriteCANThread, odrivegroup::ODriveGroup};
 use signal_hook::{consts::SIGINT, iterator::Signals};
 
 

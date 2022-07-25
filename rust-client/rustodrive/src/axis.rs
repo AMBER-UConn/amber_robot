@@ -1,7 +1,7 @@
 use socketcan::CANFrame;
 
 use crate::{
-    commands::{ODriveAxisState, ODriveCommand::{Read, Write}, Write::*, Read::*},
+    commands::{ODriveAxisState, ODriveCommand::{Read, Write}, WriteComm::*, ReadComm::*},
     messages::{ticket, CANRequest, ODriveCANFrame},
     utils::{combine_data, float_to_data},
 };
