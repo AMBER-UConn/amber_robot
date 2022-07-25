@@ -1,7 +1,10 @@
 use socketcan::CANFrame;
 
-use crate::{commands::{ODriveAxisState, ODriveCommand, Write}, messages::{CANRequest, ODriveCANFrame}, utils::{combine_data, float_to_data}};
-
+use crate::{
+    commands::{ODriveAxisState, ODriveCommand::{Read, Write}, WriteComm::*, ReadComm::*, ControlMode},
+    messages::{ticket, CANRequest, ODriveCANFrame},
+    utils::{combine_data, float_to_data},
+};
 
 pub type AxisID = usize;
 
@@ -14,8 +17,6 @@ pub struct Axis<'a> {
     pub encoder: Encoder<'a>,
 }
 
-
-
 impl<'a> Axis<'a> {
     pub fn new(id: &'a AxisID) -> Self {
         Axis {
@@ -25,35 +26,18 @@ impl<'a> Axis<'a> {
         }
     }
 
-
-
-    pub fn send_command(&self, command: Write, data: [u8; 8]) -> CANRequest {
-        CANRequest { axis: *self.id as u32, cmd: ODriveCommand::Write(command), data: data }
-    }
     /// This generates the command to set the state for the `Axis` object in question
     pub fn set_state(&self, state: ODriveAxisState) -> CANRequest {
-        self.send_command(Write::SetAxisRequestedState, [state as u8, 0, 0, 0, 0, 0, 0, 0])
+        ticket(
+            *self.id,
+            Write(SetAxisRequestedState),
+            [state as u8, 0, 0, 0, 0, 0, 0, 0],
+        )
         //CANRequest { axis: *self.id as u32, cmd: ODriveCommand::Write(Write::SetAxisRequestedState), data: [state as u8, 0, 0, 0, 0, 0, 0, 0] }
     }
 
-    pub fn set_vel(&self, speed: f32) -> CANRequest {
-        let data = combine_data(float_to_data(speed), [0; 4]); {
-            self.send_command(Write::SetInputVelocity, data)
-        }
-    }
-
-    pub fn set_pos(&self, rot: f32) -> CANRequest {
-        let data = combine_data(float_to_data(rot), [0; 4]); {
-            self.send_command(Write::SetInputPosition, data)
-        }
-    }
-
     //pub fn set_control_mode
-
-
 }
-
-
 
 pub struct Encoder<'a> {
     id: &'a AxisID,
@@ -65,8 +49,8 @@ impl<'a> Encoder<'a> {
     fn get_error() {
         unimplemented!()
     }
-    fn get_count() {
-        unimplemented!()
+    fn get_count(&self) -> CANRequest {
+        return ticket(*self.id, Read(GetEncoderCount), [0; 8]);
     }
     fn get_estimate() {
         unimplemented!()
@@ -91,7 +75,6 @@ impl Trajectory {
 
 pub struct Motor<'a> {
     id: &'a AxisID,
-    //axis: Axis<'a>,
 }
 impl<'a> Motor<'a> {
     pub fn new(id: &'a AxisID) -> Self {
@@ -108,18 +91,21 @@ impl<'a> Motor<'a> {
     fn set_node_id() {
         unimplemented!()
     }
-    fn set_state() {
-        unimplemented!()
-    }
-    fn set_control_mode() {
-        unimplemented!()
+    pub fn set_control_mode(&self, control: ControlMode) -> CANRequest {
+        ticket(*self.id, Write(SetControllerMode), [control as u8, 0, 0, 0, 0, 0, 0, 0])
     }
 
-    fn set_input_pos() {
-        unimplemented!()
+    pub fn set_input_pos(&self, rot: f32) -> CANRequest {
+        let data = combine_data(float_to_data(rot), [0; 4]);
+        {
+            ticket(*self.id, Write(SetInputPosition), data)
+        }
     }
-    fn set_input_vel() {
-        unimplemented!()
+    pub fn set_input_vel(&self, speed: f32) -> CANRequest {
+        let data = combine_data(float_to_data(speed), [0; 4]);
+        {
+            ticket(*self.id, Write(SetInputVelocity), data)
+        }
     }
     fn set_input_torque() {
         unimplemented!()

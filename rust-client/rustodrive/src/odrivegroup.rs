@@ -157,7 +157,7 @@ mod tests {
     use std::sync::mpsc::channel;
 
     use crate::canproxy::CANProxy;
-    use crate::commands::{ODriveAxisState::*, ODriveCommand, Write};
+    use crate::commands::{ODriveAxisState::*, ODriveCommand, WriteComm};
     use crate::messages::CANRequest;
     use crate::response::ResponseType;
     use crate::tests::wait_for_msgs;
@@ -172,7 +172,7 @@ mod tests {
 
         let mut expected_request = CANRequest {
             axis: 1,
-            cmd: ODriveCommand::Write(Write::SetAxisRequestedState),
+            cmd: ODriveCommand::Write(WriteComm::SetAxisRequestedState),
             data: [FullCalibrationSequence as u8, 0, 0, 0, 0, 0, 0, 0],
         };
 
@@ -201,7 +201,7 @@ mod tests {
         for i in 0..6 {
             expected_requests.push(CANRequest {
                 axis: i,
-                cmd: ODriveCommand::Write(Write::SetAxisRequestedState),
+                cmd: ODriveCommand::Write(WriteComm::SetAxisRequestedState),
                 data: [FullCalibrationSequence as u8, 0, 0, 0, 0, 0, 0, 0],
             })
         }

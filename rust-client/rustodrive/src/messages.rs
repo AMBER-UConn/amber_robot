@@ -1,9 +1,18 @@
-use crate::commands;
+use crate::commands::{self, ReadComm};
 use crate::commands::ODriveCommand;
 use socketcan::CANFrame;
 
 pub type CANRequest = ODriveCANFrame;
 pub type CANResponse = ODriveCANFrame;
+
+//CAN Ticket is a CAN command factory ready to be sent to the axis
+pub fn ticket(id: usize, command: ODriveCommand, data: [u8; 8]) -> CANRequest {
+    CANRequest { axis: id as u32, cmd: command, data: data }
+}
+
+pub fn read_CAN(id: usize, command: ReadComm) -> CANRequest {
+    ticket(id, ODriveCommand::Read(command), [0; 8])
+}
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub struct ODriveCANFrame {
@@ -32,13 +41,13 @@ impl ODriveCANFrame {
         let cmd_id = can_id & 0x1F;
 
         // Then try converting to a write command
-        match TryInto::<commands::Write>::try_into(cmd_id) {
+        match TryInto::<commands::WriteComm>::try_into(cmd_id) {
             Ok(cmd) => return ODriveCommand::Write(cmd),
             Err(_) => {}
         }
 
         // Try first converting to a read command
-        match TryInto::<commands::Read>::try_into(cmd_id) {
+        match TryInto::<commands::ReadComm>::try_into(cmd_id) {
             Ok(cmd) => return ODriveCommand::Read(cmd),
             Err(_) => panic!("CAN ID {} not able to be converted to a command", can_id),
         }
@@ -73,7 +82,7 @@ pub struct ODriveMessage {
 #[cfg(test)]
 mod tests {
     use crate::{
-        commands::{ODriveCommand, Read, Write},
+        commands::{ODriveCommand, ReadComm, WriteComm},
         messages::{CANRequest, CANResponse},
     };
 
@@ -84,13 +93,13 @@ mod tests {
         // Tests if converting from the CAN frame and back retains the right data
         let msg1 = CANRequest {
             axis: 0x1,
-            cmd: ODriveCommand::Write(Write::SetInputPosition), // this is cmd id 0x0C
+            cmd: ODriveCommand::Write(WriteComm::SetInputPosition), // this is cmd id 0x0C
             data: [0; 8],
         };
 
         let msg2 = CANRequest {
             axis: 0x293874,
-            cmd: ODriveCommand::Read(Read::GetEncoderCount), // this is cmd id 0x0C
+            cmd: ODriveCommand::Read(ReadComm::GetEncoderCount), // this is cmd id 0x0C
             data: [0; 8],
         };
 
@@ -121,12 +130,12 @@ mod tests {
     fn test_is_response() {
         let msg1 = CANRequest {
             axis: 0x1,
-            cmd: ODriveCommand::Write(Write::SetInputPosition), // this is cmd id 0x0C
+            cmd: ODriveCommand::Write(WriteComm::SetInputPosition), // this is cmd id 0x0C
             data: [0; 8],
         };
         let fake_response = CANResponse {
             axis: 0x1,
-            cmd: ODriveCommand::Write(Write::SetInputPosition), // this is cmd id 0x0C
+            cmd: ODriveCommand::Write(WriteComm::SetInputPosition), // this is cmd id 0x0C
             data: [1; 8], // the data has changed but the rest is the same
         };
         assert_eq!(msg1.is_response(&fake_response), true);

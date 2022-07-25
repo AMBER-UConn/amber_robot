@@ -310,7 +310,7 @@ impl CANProxy {
             Ok(res) => CANResponse::from_can(&res),
             Err(_) => return,
         };
-        print!("\r{:?}                                                     ", &can_response);
+        //print!("{:?}", &can_response);
 
         // Find the message that is waiting for a response and send it back
         match self.listener_index(&can_response) {
@@ -458,7 +458,7 @@ mod tests {
     use std::{sync::mpsc::channel, time::Duration};
 
     use crate::{
-        commands::{ODriveCommand, Read, Write},
+        commands::{ODriveCommand, ReadComm, WriteComm},
         messages::{CANRequest}, tests::wait_for_msgs, response::{ManyResponses, ODriveResponse, ResponseType},
     };
 
@@ -520,7 +520,7 @@ mod tests {
         let mut can_proxy = CANProxy::new("fakecan");
         let request = CANRequest {
             axis: 2,
-            cmd: ODriveCommand::Read(Read::EncoderError),
+            cmd: ODriveCommand::Read(ReadComm::EncoderError),
             data: [0; 8],
         };
 
@@ -555,7 +555,7 @@ mod tests {
         let mut can_proxy = CANProxy::new("fakecan");
         let request = CANRequest {
             axis: 2,
-            cmd: ODriveCommand::Write(Write::SetAxisNodeID),
+            cmd: ODriveCommand::Write(WriteComm::SetAxisNodeID),
             data: [0; 8],
         };
 
@@ -593,7 +593,7 @@ mod tests {
         for i in 0..10 {
             requests.push(CANRequest {
                 axis: i,
-                cmd: ODriveCommand::Read(Read::EncoderError),
+                cmd: ODriveCommand::Read(ReadComm::EncoderError),
                 data: [1; 8],
             })
         }

@@ -12,7 +12,7 @@ fn bench_can_proxy(c: &mut Criterion) {
 
     use rustodrive::{
         canproxy::CANProxy,
-        commands::{ODriveCommand, Write, Read},
+        commands::{ODriveCommand, WriteComm, ReadComm},
         messages::CANRequest,
     };
 
@@ -27,7 +27,7 @@ fn bench_can_proxy(c: &mut Criterion) {
             can_proxy.register_rw("thread 1", move |can_read_write| {
                 let frames = (0..num_messages).into_iter().map(|axis| black_box(CANRequest {
                     axis: axis as u32,
-                    cmd: ODriveCommand::Read(Read::EncoderError),
+                    cmd: ODriveCommand::Read(ReadComm::EncoderError),
                     data: [0;8]
                 })).collect();
                 can_read_write.request_many(frames);
