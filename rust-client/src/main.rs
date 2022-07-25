@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use rustodrive::{commands::{ODriveAxisState::*, WriteComm}, canproxy::CANProxy, threads::ReadWriteCANThread, odrivegroup::ODriveGroup};
+use rustodrive::{commands::{ODriveAxisState::*, WriteComm, ControlMode::*}, canproxy::CANProxy, threads::ReadWriteCANThread, odrivegroup::ODriveGroup};
 use signal_hook::{consts::SIGINT, iterator::Signals};
 
 
@@ -8,7 +8,10 @@ fn odrive_main(can_read_write: ReadWriteCANThread) {
     let odrives = ODriveGroup::new(can_read_write, &[0, 1]);
 
     odrives.all_axes(|ax| ax.set_state(ClosedLoop));
-    odrives.all_axes(|ax| ax.motor.set_input_vel(10.0));
+    
+    odrives.all_axes(|ax| ax.motor.set_control_mode(PositionControl));
+    odrives.all_axes(|ax| ax.motor.set_input_pos(180 as f32/360 as f32));
+    //odrives.all_axes(|ax| ax.motor.set_input_vel(10.0));
     
     //InputVel when [1; 8]: [1.40e-45, 3.59e-43, 9.18e-41, 2.35e-38, 0, 0, 0, 0]
 }

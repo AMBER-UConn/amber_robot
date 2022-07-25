@@ -15,11 +15,11 @@ back_to_enum! {
     }
 }
 
-impl ReadComm {
-    pub fn to_msg(axis: u32, cmd: Self) -> ODriveCANFrame {
-        ODriveCANFrame { axis, cmd: ODriveCommand::Read(cmd), data: [0; 8] }
-    }
-}
+//impl ReadComm {
+//    pub fn to_msg(axis: u32, cmd: Self) -> ODriveCANFrame {
+//        ODriveCANFrame { axis, cmd: ODriveCommand::Read(cmd), data: [0; 8] }
+//    }
+//}
 
 
 back_to_enum! {
@@ -30,7 +30,7 @@ back_to_enum! {
         SetAxisNodeID = 0x006,
         SetAxisRequestedState = 0x007,
         // SetAxisStartupConfig **Not yet implemented in ODrive according to documentation**
-        SetControllerModes = 0x00B,
+        SetControllerMode = 0x00B,
         SetInputPosition = 0x00C,
         SetInputVelocity = 0x00D,
         SetInputTorque = 0x00E,
@@ -47,11 +47,11 @@ back_to_enum! {
     }
 }
 
-impl WriteComm {
-    pub fn to_msg(axis: u32, cmd: Self, data: [u8; 8]) -> ODriveCANFrame {
-        ODriveCANFrame { axis, cmd: ODriveCommand::Write(cmd), data }
-    }
-}
+//impl WriteComm {
+//    pub fn to_msg(axis: u32, cmd: Self, data: [u8; 8]) -> ODriveCANFrame {
+//        ODriveCANFrame { axis, cmd: ODriveCommand::Write(cmd), data }
+//    }
+//}
 
 
 /// Documentation: <https://docs.odriverobotics.com/v/latest/can-protocol.html#messages>
@@ -77,5 +77,29 @@ back_to_enum! {
         Homing = 0xB,
         EncoderHallPolarityCalib = 0xC,
         EncoderHallPhaseCalib = 0xD,
+    }
+}
+
+
+//https://docs.odriverobotics.com/v/latest/fibre_types/com_odriverobotics_ODrive.html#ODrive.Controller.ControlMode
+back_to_enum!{
+    pub enum ControlMode {
+        VoltageControl = 0x0,
+        TorqueControl = 0x1,
+        VelocityControl = 0x2,
+        PositionControl = 0x3,
+    }
+}
+back_to_enum!{
+    pub enum InputMode {
+        Inactive = 0x0,
+        Passthrough = 0x1,
+        VelRamp = 0x2,
+        PosFilter = 0x3,
+        MixChannels = 0x4,
+        TrapTraj = 0x5,
+        TorqueRamp = 0x6,
+        Mirror = 0x7,
+        Tuning = 0x8,
     }
 }
