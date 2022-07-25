@@ -70,6 +70,8 @@ class RoverMotorConfig:
         # This is to lower the amount of power going back into the odrive when the motor is braking
         self.odrv.config.enable_brake_resistor = True
 
+        self.config_power_supply()
+        
         self.config_motors()
         self.config_sensorless() if self.sensorless else self.config_encoder()
         self.config_CAN(CAN_id)
