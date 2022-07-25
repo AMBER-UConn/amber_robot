@@ -1,6 +1,6 @@
 use socketcan::CANFrame;
 
-use crate::{commands::{ODriveAxisState, ODriveCommand, Write}, messages::{CANRequest, ODriveCANFrame}};
+use crate::{commands::{ODriveAxisState, ODriveCommand, Write}, messages::{CANRequest, ODriveCANFrame}, utils::{combine_data, float_to_data}};
 
 
 pub type AxisID = usize;
@@ -14,6 +14,8 @@ pub struct Axis<'a> {
     pub encoder: Encoder<'a>,
 }
 
+
+
 impl<'a> Axis<'a> {
     pub fn new(id: &'a AxisID) -> Self {
         Axis {
@@ -24,6 +26,7 @@ impl<'a> Axis<'a> {
     }
 
 
+
     pub fn send_command(&self, command: Write, data: [u8; 8]) -> CANRequest {
         CANRequest { axis: *self.id as u32, cmd: ODriveCommand::Write(command), data: data }
     }
@@ -32,6 +35,21 @@ impl<'a> Axis<'a> {
         self.send_command(Write::SetAxisRequestedState, [state as u8, 0, 0, 0, 0, 0, 0, 0])
         //CANRequest { axis: *self.id as u32, cmd: ODriveCommand::Write(Write::SetAxisRequestedState), data: [state as u8, 0, 0, 0, 0, 0, 0, 0] }
     }
+
+    pub fn set_vel(&self, speed: f32) -> CANRequest {
+        let data = combine_data(float_to_data(speed), [0; 4]); {
+            self.send_command(Write::SetInputVelocity, data)
+        }
+    }
+
+    pub fn set_pos(&self, rot: f32) -> CANRequest {
+        let data = combine_data(float_to_data(rot), [0; 4]); {
+            self.send_command(Write::SetInputPosition, data)
+        }
+    }
+
+    //pub fn set_control_mode
+
 
 }
 
@@ -73,6 +91,7 @@ impl Trajectory {
 
 pub struct Motor<'a> {
     id: &'a AxisID,
+    //axis: Axis<'a>,
 }
 impl<'a> Motor<'a> {
     pub fn new(id: &'a AxisID) -> Self {

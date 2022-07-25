@@ -7,6 +7,7 @@ pub mod odrivegroup;
 pub mod threads;
 pub mod axis;
 pub mod response;
+pub mod utils;
 
 #[cfg(test)]
 pub(crate) mod tests {
