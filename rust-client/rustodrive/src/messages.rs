@@ -5,6 +5,11 @@ use socketcan::CANFrame;
 pub type CANRequest = ODriveCANFrame;
 pub type CANResponse = ODriveCANFrame;
 
+//CAN Ticket is a CAN command factory ready to be sent to the axis
+pub fn ticket(id: usize, command: ODriveCommand, data: [u8; 8]) -> CANRequest {
+    CANRequest { axis: id as u32, cmd: command, data: data }
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub struct ODriveCANFrame {
     pub axis: u32,
