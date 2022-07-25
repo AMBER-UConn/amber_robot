@@ -82,6 +82,12 @@ class RoverMotorConfig:
 
         self.save()
 
+    def config_power_supply(self):
+        #  power configuration for AC/DC Power Supply
+        self.config.dc_bus_overvoltage_trip_level = 25
+        self.config.dc_max_positive_current = 10
+        self.config.dc_max_negative_current = -1
+    
     def config_motors(self):
         # The motors have a peak current of 9 amps
         self.axis.motor.config.current_lim = 9
