@@ -37,7 +37,7 @@ class RoverMotorConfig:
     CAN_BAUD_RATE = 250000
 
 
-    def __init__(self, axis_num, sensorless = False, _output = True):
+    def __init__(self, axis_num, sensorless = False, _output = True, _force_sensorless = True):
         """
         Initalizes RoverMotorConfig class by finding odrive, erase its 
         configuration, and grabbing specified axis object.
@@ -49,6 +49,7 @@ class RoverMotorConfig:
         self.axis = None
         self.odrv = self.get_odrive(_output)
         self.sensorless = sensorless
+        self._force_sensorless = _force_sensorless
 
         self.output = _output
         # Connect to Odrive
@@ -66,6 +67,23 @@ class RoverMotorConfig:
     @classmethod
     def get_axis(cls, axis_num, odrv):
         return getattr(odrv, f"axis{axis_num}")
+
+    @classmethod
+    def config_power_supply(cls, odrv):
+        #  power configuration for AC/DC Power Supply
+        odrv.config.dc_bus_overvoltage_trip_level = 25
+        odrv.config.dc_max_positive_current = 10
+        odrv.config.dc_max_negative_current = -1
+
+    @classmethod
+    def config_lipo_battery(cls, odrv):
+        print("Please enter battery ratings as asked.")
+        batt_n_cells = int(input("Enter number of cells in series: "))
+        batt_capacity = int(input("Enter battery capacity in mAh: ")) / 1000
+        odrv.config.dc_bus_undervoltage_trip_level = 3.25 * batt_n_cells
+        odrv.config.dc_bus_overvoltage_trip_level = 4.25 * batt_n_cells
+        #self.odrv.config.dc_max_positive_current = batt_capacity * 50
+        #self.odrv.config.dc_max_negative_current = -batt_capacity * 1 # CHECK THIS CAREFULLY
 
     def configure(self, CAN_id):
         # This is to lower the amount of power going back into the odrive when the motor is braking
@@ -85,21 +103,6 @@ class RoverMotorConfig:
         
 
         self.save()
-
-    def config_power_supply(self):
-        #  power configuration for AC/DC Power Supply
-        self.odrv.config.dc_bus_overvoltage_tconfig_power_supplyip_level = 25
-        self.odrv.config.dc_max_positive_current = 10
-        self.odrv.config.dc_max_negative_current = -1
-
-    def config_lipo_battery(self):
-        print("Please enter battery ratings as asked.")
-        batt_n_cells = int(input("Enter number of cells in series: "))
-        batt_capacity = int(input("Enter battery capacity in mAh: ")) / 1000
-        self.odrv.config.dc_bus_undervoltage_trip_level = 3.25 * batt_n_cells
-        self.odrv.config.dc_bus_overvoltage_trip_level = 4.25 * batt_n_cells
-        #self.odrv.config.dc_max_positive_current = batt_capacity * 50
-        #self.odrv.config.dc_max_negative_current = -batt_capacity * 1 # CHECK THIS CAREFULLY
 
     
     def config_motors(self):
@@ -171,6 +174,11 @@ class RoverMotorConfig:
 
     def encoder_calib(self, use_index=True, sensorless_enc_error = True):
         self.axis = self.get_axis(self.axis_num, self.get_odrive())
+
+        #Skips Encoder Calibration if Motor Calibration failed
+        if not(self.axis.motor.config.pre_calibrated):
+            return
+
         if use_index:
             self.axis.encoder.config.use_index = True
             print("Rotating Encoder {} back to index...".format(self.axis_num))
@@ -191,9 +199,11 @@ class RoverMotorConfig:
         if self.check_error(self.axis.encoder):
             self.axis.encoder.config.pre_calibrated = True
         elif sensorless_enc_error:
-            print("Encoder Error, reverting to sensorless mode...")
-            self.sensorless = True
-            self.config_sensorless()
+            print("Encoder Error")
+            if self._force_sensorless:
+                print("Reverting to sensorless mode...")
+                self.sensorless = True
+                self.config_sensorless()
             #If there is an encoder error (i.e. encoder isn't detected), the motor becomes sensorless
             
 
@@ -225,19 +235,19 @@ def main():
 
     odrv_can_id = 2 * int(input("ODrive CAN ID > "))
 
-    odrive_config1 = RoverMotorConfig(axis_num=0)
+    odrive_config1 = RoverMotorConfig(axis_num = 0, _force_sensorless = False)
     odrive_config1.configure(CAN_id=odrv_can_id)
 
-    odrive_config2 = RoverMotorConfig(axis_num=1)
+    odrive_config2 = RoverMotorConfig(axis_num = 1, _force_sensorless = False)
     odrive_config2.configure(CAN_id=odrv_can_id + 1)
     odrv = RoverMotorConfig.get_odrive()
 
-    power_supply_type = input("Enter 1 for Bench Power Supply or 2 for Battery")
+    power_supply_type = int(input("Enter 1 for Bench Power Supply or 2 for Battery"))
     match power_supply_type:
         case 1:
-            RoverMotorConfig.config_power_supply()
+            RoverMotorConfig.config_power_supply(odrv)
         case 2:
-            RoverMotorConfig.config_lipo_battery()
+            RoverMotorConfig.config_lipo_battery(odrv)
 
 
     input("Make sure the motor is free to move, then press enter...")
