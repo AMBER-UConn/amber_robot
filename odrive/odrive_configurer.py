@@ -242,12 +242,14 @@ def main():
     odrive_config2.configure(CAN_id=odrv_can_id + 1)
     odrv = RoverMotorConfig.get_odrive()
 
-    power_supply_type = int(input("Enter 1 for Bench Power Supply or 2 for Battery"))
+    power_supply_type = int(input("Enter 1 for Bench Power Supply or 2 for Battery > "))
     match power_supply_type:
         case 1:
             RoverMotorConfig.config_power_supply(odrv)
         case 2:
             RoverMotorConfig.config_lipo_battery(odrv)
+        case _:
+            raise ValueError("Incorrect Input!")
 
 
     input("Make sure the motor is free to move, then press enter...")
