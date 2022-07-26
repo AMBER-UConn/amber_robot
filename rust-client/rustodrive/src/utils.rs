@@ -1,8 +1,8 @@
 pub fn float_to_data(fl: f32) -> [u8; 4] {
-    let mut data = (fl).to_be_bytes(); {
-        data.reverse();
-        return data;
-    }
+    let mut data = (fl).to_be_bytes();
+    data.reverse();
+    return data;
+    
 }
 
 pub fn combine_data(data1: [u8; 4], data2: [u8; 4]) -> [u8; 8] {
