@@ -13,10 +13,10 @@ fn odrive_main(can_read_write: ReadWriteCANThread) {
         let mut out = String::new();
         println!("{}", txt);
         stdin().read_line(&mut out).unwrap();
-        return out;
+        return out.trim().to_string();
     }
 
-    let odrives = ODriveGroup::new(can_read_write, &[0, 1]);
+    let odrives = ODriveGroup::new(can_read_write, &[0, 1, 2, 3, 4, 5]);
     let mut is_closed_loop = false;
     let mut inp = String::new();
 
@@ -24,7 +24,7 @@ fn odrive_main(can_read_write: ReadWriteCANThread) {
         //println!();
         //stdin().read_line(&mut inp).unwrap();
         inp = input("Input (C - Toggle Closed Loop, V - Input Velocity, P - Input Position, CM - Control Mode / Input Mode) > ");
-
+        //println!("{}", inp.to_uppercase());
         match inp.to_uppercase().as_str() {
             "C" => {
                 if (is_closed_loop) {
