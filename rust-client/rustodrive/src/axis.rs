@@ -1,7 +1,7 @@
 use socketcan::CANFrame;
 
 use crate::{
-    commands::{ODriveAxisState, ODriveCommand::{Read, Write}, WriteComm::*, ReadComm::*, ControlMode},
+    commands::{ODriveAxisState, ODriveCommand::{Read, Write}, WriteComm::*, ReadComm::*, ControlMode, InputMode},
     messages::{ticket, CANRequest, ODriveCANFrame},
     utils::{combine_data, float_to_data},
 };
@@ -91,8 +91,8 @@ impl<'a> Motor<'a> {
     fn set_node_id() {
         unimplemented!()
     }
-    pub fn set_control_mode(&self, control: ControlMode) -> CANRequest {
-        ticket(*self.id, Write(SetControllerMode), [control as u8, 0, 0, 0, 0, 0, 0, 0])
+    pub fn set_control_mode(&self, control: ControlMode, input: InputMode) -> CANRequest {
+        ticket(*self.id, Write(SetControllerMode), [control as u8, 0, 0, 0, input as u8, 0, 0, 0])
     }
 
     pub fn set_input_pos(&self, rot: f32) -> CANRequest {
