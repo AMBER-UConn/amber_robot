@@ -22,6 +22,7 @@ import odrive
 from fibre.libfibre import ObjectLostError
 import time
 import sys
+import init_motors
 
 
 class RoverMotorConfig:
@@ -102,8 +103,6 @@ class RoverMotorConfig:
         self.axis.controller.config.input_mode = INPUT_MODE_VEL_RAMP
         
 
-        self.save()
-
         return self.odrv
 
     
@@ -164,7 +163,6 @@ class RoverMotorConfig:
 
     def motor_calib(self):
         print("\nCalibrating Motor {} (You should hear a beep)...".format(self.axis_num))
-        self.axis = self.get_axis(self.axis_num, self.odrv)
         self.axis.requested_state = AXIS_STATE_MOTOR_CALIBRATION
 
         # Wait for calibration to take place
@@ -176,8 +174,6 @@ class RoverMotorConfig:
 
 
     def encoder_calib(self, use_index=True, sensorless_enc_error = True):
-        self.axis = self.get_axis(self.axis_num, self.odrv)
-
         #Skips Encoder Calibration if Motor Calibration failed
         if not(self.axis.motor.config.pre_calibrated):
             return
@@ -210,19 +206,18 @@ class RoverMotorConfig:
             #If there is an encoder error (i.e. encoder isn't detected), the motor becomes sensorless
             
 
-    def run_calib(self):
-        self.odrv = self.get_odrive()
+    def run_calib(self, odrv):
+        self.odrv = odrv
+        self.axis = self.get_axis(self.axis_num, self.odrv)
         self.motor_calib()
         self.encoder_calib() if not(self.sensorless) else None
-        self.save()
 
-    def save(self):
-        try:
-            self.get_odrive().save_configuration()
-        except ObjectLostError:
-            pass
-        self.odrv = self.get_odrive()
-        self.axis = self.get_axis(self.axis_num, self.odrv)
+def save(odrv = RoverMotorConfig.get_odrive()):
+    try:
+        odrv.save_configuration()
+    except ObjectLostError:
+        pass
+    return RoverMotorConfig.get_odrive()
 
 def wait_until(cond, sec_limit: float = 10.0):
     tick = 0
@@ -239,13 +234,16 @@ def main():
     except:
         pass
 
+    odrv = RoverMotorConfig.get_odrive()
+
     odrv_can_id = 2 * int(input("ODrive CAN ID > "))
 
-    odrive_config1 = RoverMotorConfig(axis_num = 0, _force_sensorless = False, odrv = RoverMotorConfig.get_odrive())
-    odrv = odrive_config1.configure(CAN_id=odrv_can_id)
+    odrive_config1 = RoverMotorConfig(axis_num = 0, _force_sensorless = False, odrv = odrv)
+    odrv = odrive_config1.configure(CAN_id = odrv_can_id)
 
     odrive_config2 = RoverMotorConfig(axis_num = 1, _force_sensorless = False, odrv = odrv)
-    odrv = odrive_config2.configure(CAN_id=odrv_can_id + 1)
+    odrv = odrive_config2.configure(CAN_id = odrv_can_id + 1)
+
 
     power_supply_type = int(input("Enter 1 for Bench Power Supply or 2 for Battery > "))
     match power_supply_type:
@@ -255,20 +253,22 @@ def main():
             RoverMotorConfig.config_lipo_battery(odrv)
         case _:
             raise ValueError("Incorrect Input!")
+
+    odrv = save(odrv)
     
-    try:
-        odrv.save_configuration()
-    except:
-        pass
-
-
     input("Make sure the motor is free to move, then press enter...")
 
-    odrive_config1.run_calib()
-    odrive_config2.run_calib()
+    odrive_config1.run_calib(odrv)
+    odrive_config2.run_calib(odrv)
 
+    print("Saving...")
+    odrv = save(odrv)
     print("Calibration Complete!")
+    return odrv
 
 
 if __name__ == "__main__":
-    main()
+    o = main()
+
+    print("Initializing Motors...")
+    init_motors.init(o)
