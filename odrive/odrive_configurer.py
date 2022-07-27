@@ -37,7 +37,7 @@ class RoverMotorConfig:
     CAN_BAUD_RATE = 250000
 
 
-    def __init__(self, axis_num, sensorless = False, _output = True, _force_sensorless = True):
+    def __init__(self, axis_num, odrv, sensorless = False, _output = True, _force_sensorless = True):
         """
         Initalizes RoverMotorConfig class by finding odrive, erase its 
         configuration, and grabbing specified axis object.
@@ -47,7 +47,7 @@ class RoverMotorConfig:
         """
         self.axis_num = axis_num
         self.axis = None
-        self.odrv = self.get_odrive(_output)
+        self.odrv = odrv
         self.sensorless = sensorless
         self._force_sensorless = _force_sensorless
 
@@ -57,7 +57,7 @@ class RoverMotorConfig:
         self.axis = self.get_axis(self.axis_num, self.odrv)
 
     @classmethod
-    def get_odrive(cls, output = True):
+    def get_odrive(cls, output = False):
         # connect to Odrive
         print("Looking for ODrive...") if output else None
         odrv = odrive.find_any()
@@ -103,6 +103,8 @@ class RoverMotorConfig:
         
 
         self.save()
+
+        return self.odrv
 
     
     def config_motors(self):
@@ -162,7 +164,7 @@ class RoverMotorConfig:
 
     def motor_calib(self):
         print("\nCalibrating Motor {} (You should hear a beep)...".format(self.axis_num))
-        self.axis = self.get_axis(self.axis_num, self.get_odrive())
+        self.axis = self.get_axis(self.axis_num, self.odrv)
         self.axis.requested_state = AXIS_STATE_MOTOR_CALIBRATION
 
         # Wait for calibration to take place
@@ -172,8 +174,9 @@ class RoverMotorConfig:
         if self.check_error(self.axis.motor):
             self.axis.motor.config.pre_calibrated = True
 
+
     def encoder_calib(self, use_index=True, sensorless_enc_error = True):
-        self.axis = self.get_axis(self.axis_num, self.get_odrive())
+        self.axis = self.get_axis(self.axis_num, self.odrv)
 
         #Skips Encoder Calibration if Motor Calibration failed
         if not(self.axis.motor.config.pre_calibrated):
@@ -208,6 +211,7 @@ class RoverMotorConfig:
             
 
     def run_calib(self):
+        self.odrv = self.get_odrive()
         self.motor_calib()
         self.encoder_calib() if not(self.sensorless) else None
         self.save()
@@ -217,6 +221,8 @@ class RoverMotorConfig:
             self.get_odrive().save_configuration()
         except ObjectLostError:
             pass
+        self.odrv = self.get_odrive()
+        self.axis = self.get_axis(self.axis_num, self.odrv)
 
 def wait_until(cond, sec_limit: float = 10.0):
     tick = 0
@@ -226,7 +232,7 @@ def wait_until(cond, sec_limit: float = 10.0):
     print("wait timed out") if tick >= sec_limit else None
 
 def main():
-    odrv = RoverMotorConfig.get_odrive()
+    odrv = RoverMotorConfig.get_odrive(True)
     print("Erasing pre-existing configuration...")
     try:
         odrv.erase_configuration()
@@ -235,12 +241,11 @@ def main():
 
     odrv_can_id = 2 * int(input("ODrive CAN ID > "))
 
-    odrive_config1 = RoverMotorConfig(axis_num = 0, _force_sensorless = False)
-    odrive_config1.configure(CAN_id=odrv_can_id)
+    odrive_config1 = RoverMotorConfig(axis_num = 0, _force_sensorless = False, odrv = RoverMotorConfig.get_odrive())
+    odrv = odrive_config1.configure(CAN_id=odrv_can_id)
 
-    odrive_config2 = RoverMotorConfig(axis_num = 1, _force_sensorless = False)
-    odrive_config2.configure(CAN_id=odrv_can_id + 1)
-    odrv = RoverMotorConfig.get_odrive()
+    odrive_config2 = RoverMotorConfig(axis_num = 1, _force_sensorless = False, odrv = odrv)
+    odrv = odrive_config2.configure(CAN_id=odrv_can_id + 1)
 
     power_supply_type = int(input("Enter 1 for Bench Power Supply or 2 for Battery > "))
     match power_supply_type:
@@ -250,6 +255,11 @@ def main():
             RoverMotorConfig.config_lipo_battery(odrv)
         case _:
             raise ValueError("Incorrect Input!")
+    
+    try:
+        odrv.save_configuration()
+    except:
+        pass
 
 
     input("Make sure the motor is free to move, then press enter...")
