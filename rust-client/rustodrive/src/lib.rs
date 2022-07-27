@@ -9,6 +9,8 @@ pub mod axis;
 pub mod response;
 pub mod utils;
 
+pub mod test_ui;
+
 #[cfg(test)]
 pub(crate) mod tests {
     use crate::{
