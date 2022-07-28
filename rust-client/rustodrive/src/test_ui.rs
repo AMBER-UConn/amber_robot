@@ -70,6 +70,8 @@ pub fn ui_start(odrives: ODriveGroup) {
                 });
             }
 
+            "I" => {odrives.all_axes(|ax| ax.set_state(EncoderIndexSearch));},
+
             // Quit
             "Q" => {
                 println!("Quitting...");
