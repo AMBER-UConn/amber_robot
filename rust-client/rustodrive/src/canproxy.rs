@@ -6,7 +6,7 @@ use std::thread::JoinHandle;
 
 use crate::cansocket::CANSocket;
 use crate::commands::ODriveCommand;
-use crate::messages::{CANResponse, ODriveMessage, ODriveCANFrame};
+use crate::canframe::{CANResponse, ThreadCANFrame, ODriveCANFrame};
 use crate::response::{ODriveResponse, ResponseType, ErrorResponse, ODriveError};
 use crate::threads::{ReadOnlyCANThread, ReadWriteCANThread};
 
@@ -20,11 +20,11 @@ pub enum ProxyError {
 /// The CANProxy is in charge of handling all communication with the CAN
 /// port on behalf of all threads that are registered to it.
 pub struct CANProxy {
-    mpsc_channel: (Sender<ODriveMessage>, Receiver<ODriveMessage>),
+    mpsc_channel: (Sender<ThreadCANFrame>, Receiver<ThreadCANFrame>),
     threads: HashMap<ThreadID, ThreadConnection>,
     rw_thread: Option<ThreadID>, // There can only be one read and write thread at a time. Store the identifier in here
     threads_alive: Arc<AtomicBool>,
-    requests: Vec<ODriveMessage>,
+    requests: Vec<ThreadCANFrame>,
     socket: CANSocket,
 }
 
@@ -37,7 +37,7 @@ impl CANProxy {
         let socket = CANSocket::open(can_device).expect("Could not open CAN at can1");
 
         // Define the channel for the proxy here
-        let mpsc_channel = channel::<ODriveMessage>();
+        let mpsc_channel = channel::<ThreadCANFrame>();
 
         Self {
             mpsc_channel,
@@ -66,7 +66,7 @@ impl CANProxy {
     /// # Example
     /// ```
     /// use rustodrive::canproxy::CANProxy;
-    /// use rustodrive::messages::CANRequest;
+    /// use rustodrive::canframe::CANRequest;
     /// use rustodrive::commands::{ODriveCommand::Read, ReadComm};
     ///
     /// let mut can_proxy = CANProxy::new("can0");
@@ -170,7 +170,7 @@ impl CANProxy {
     /// for joining all the threads at a later point.
     fn register<F>(&mut self, thread_name: &'static str, func: F)
     where
-        F: FnOnce(Sender<ODriveMessage>, Receiver<ODriveResponse>) + std::marker::Send + 'static,
+        F: FnOnce(Sender<ThreadCANFrame>, Receiver<ODriveResponse>) + std::marker::Send + 'static,
     {
         // Check that the thread ID does not exist already
         if self.threads.contains_key(thread_name) {
@@ -459,7 +459,7 @@ mod tests {
 
     use crate::{
         commands::{ODriveCommand, ReadComm, WriteComm},
-        messages::{CANRequest}, tests::wait_for_msgs, response::{ManyResponses, ResponseType},
+        canframe::{CANRequest}, tests::wait_for_msgs, response::{ManyResponses, ResponseType},
     };
 
     use super::CANProxy;

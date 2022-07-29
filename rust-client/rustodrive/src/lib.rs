@@ -2,7 +2,7 @@ pub mod canproxy;
 pub(crate) mod cansocket;
 pub mod commands;
 pub(crate) mod macros;
-pub mod messages;
+pub mod canframe;
 pub mod odrivegroup;
 pub mod threads;
 pub mod axis;
@@ -12,7 +12,7 @@ pub mod utils;
 #[cfg(test)]
 pub(crate) mod tests {
     use crate::{
-        messages::{ODriveMessage},
+        canframe::{ThreadCANFrame},
         threads::ReadWriteCANThread, response::ODriveResponse,
     };
     use std::sync::{
@@ -24,14 +24,14 @@ pub(crate) mod tests {
     #[allow(dead_code)]
     pub(crate) struct ThreadStub {
         pub thread_id: &'static str,
-        pub proxy_receiver: Receiver<ODriveMessage>,
+        pub proxy_receiver: Receiver<ThreadCANFrame>,
         pub proxy_sender: Sender<ODriveResponse>,
         pub rw_communicator: ReadWriteCANThread,
     }
 
     impl ThreadStub {
         pub fn new(thread_name: &'static str, threads_alive: Arc<AtomicBool>) -> Self {
-            let (thread_requester, proxy_receiver) = channel::<ODriveMessage>();
+            let (thread_requester, proxy_receiver) = channel::<ThreadCANFrame>();
             let (proxy_sender, thread_receiver) = channel::<ODriveResponse>();
 
             Self {

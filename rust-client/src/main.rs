@@ -1,6 +1,6 @@
 use rustodrive::{
     canproxy::CANProxy,
-    commands::ODriveAxisState::*,
+    commands::{ODriveAxisState::*, ControlMode, InputMode},
     odrivegroup::ODriveGroup,
     threads::ReadWriteCANThread,
 };
@@ -20,14 +20,15 @@ fn odrive_main(can_read_write: ReadWriteCANThread) {
 
     init_motors(&odrives);
 
-    test_ui::ui_start(odrives);
+    // test_ui::ui_start(odrives);
 
 
     //odrives.all_axes(|ax| ax.set_state(ClosedLoop));
 
-    //odrives.all_axes(|ax| ax.motor.set_control_mode(PositionControl));
+    odrives.all_axes(|ax| ax.motor.set_control_mode(ControlMode::PositionControl, InputMode::PosFilter));
     //odrives.all_axes(|ax| ax.motor.set_input_pos(180 as f32 / 360 as f32));
     //odrives.all_axes(|ax| ax.motor.set_input_vel(10.0));
+    odrives.axis(&0, |ax| ax.set_state(Idle)).unwrap();
 
     //InputVel when [1; 8]: [1.40e-45, 3.59e-43, 9.18e-41, 2.35e-38, 0, 0, 0, 0]
 }

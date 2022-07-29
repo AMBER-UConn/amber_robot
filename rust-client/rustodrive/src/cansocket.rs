@@ -1,7 +1,7 @@
 
 use std::io;
 use socketcan::{CANSocketOpenError, CANFrame};
-use crate::{cfg_match, messages::CANRequest, commands::ODriveCommand};
+use crate::{cfg_match, canframe::CANRequest, commands::ODriveCommand};
 
 cfg_match! {
     feature = "mock-socket" => {

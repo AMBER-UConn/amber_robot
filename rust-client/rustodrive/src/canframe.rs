@@ -72,8 +72,10 @@ impl ODriveCANFrame {
         self.axis == other.axis && self.cmd == other.cmd
     }
 }
+
+/// This is a wrapper struct to keep track of which thread sent what ODriveCANFrame
 #[derive(Clone, PartialEq, Debug)]
-pub struct ODriveMessage {
+pub struct ThreadCANFrame {
     pub thread_name: &'static str,
     pub body: ODriveCANFrame,
 }
@@ -83,7 +85,7 @@ pub struct ODriveMessage {
 mod tests {
     use crate::{
         commands::{ODriveCommand, ReadComm, WriteComm},
-        messages::{CANRequest, CANResponse},
+        canframe::{CANRequest, CANResponse},
     };
 
     use super::ODriveCANFrame;

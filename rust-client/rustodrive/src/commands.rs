@@ -90,6 +90,7 @@ back_to_enum!{
         PositionControl = 0x3,
     }
 }
+
 back_to_enum!{
     pub enum InputMode {
         Inactive = 0x0,

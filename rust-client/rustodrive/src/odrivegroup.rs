@@ -2,13 +2,13 @@ use std::collections::BTreeMap;
 
 use crate::{
     axis::{Axis, AxisID},
-    messages::{CANRequest},
+    canframe::{CANRequest},
     response::ODriveResponse,
     threads::ReadWriteCANThread,
 };
 
 /// `ODriveGroup` is an interface for communicating with the odrive,
-/// without having to worry about creating the boilerplate [`ODriveCANFrame`]
+/// without having to worry about creating the boilerplate `ODriveCANFrame`
 /// over and over again. 
 /// 
 /// To initialize, we pass in a slice of all the axis IDs. This is not the 
@@ -158,7 +158,7 @@ mod tests {
 
     use crate::canproxy::CANProxy;
     use crate::commands::{ODriveAxisState::*, ODriveCommand, WriteComm};
-    use crate::messages::CANRequest;
+    use crate::canframe::CANRequest;
     use crate::response::ResponseType;
     use crate::tests::wait_for_msgs;
 

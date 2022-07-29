@@ -1,4 +1,4 @@
-use crate::messages::{CANRequest, CANResponse};
+use crate::canframe::{CANRequest, CANResponse};
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct ErrorResponse {

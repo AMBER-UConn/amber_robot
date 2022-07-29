@@ -13,7 +13,7 @@ fn bench_can_proxy(c: &mut Criterion) {
     use rustodrive::{
         canproxy::CANProxy,
         commands::{ODriveCommand, ReadComm},
-        messages::CANRequest,
+        canframe::CANRequest,
     };
 
     let mut can_proxy = CANProxy::new("fakecan");

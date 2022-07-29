@@ -3,13 +3,13 @@
 
 use crate::{
     commands::{ODriveAxisState, ODriveCommand::{Read, Write}, WriteComm::*, ReadComm::*, ControlMode, InputMode},
-    messages::{ticket, CANRequest},
+    canframe::{ticket, CANRequest},
     utils::{combine_data, float_to_data},
 };
 
 pub type AxisID = usize;
 
-/// This struct contains methods that can generate common [`ODriveCANFrame`] configurations.
+/// This struct contains methods that can generate common `ODriveCANFrame` configurations.
 /// The [`Motor`] and [`Encoder`] objects are publicly accessible and define their own
 /// frame-generating methods.
 pub struct Axis<'a> {
@@ -34,7 +34,6 @@ impl<'a> Axis<'a> {
             Write(SetAxisRequestedState),
             [state as u8, 0, 0, 0, 0, 0, 0, 0],
         )
-        //CANRequest { axis: *self.id as u32, cmd: ODriveCommand::Write(Write::SetAxisRequestedState), data: [state as u8, 0, 0, 0, 0, 0, 0, 0] }
     }
 
     //pub fn set_control_mode
@@ -98,15 +97,11 @@ impl<'a> Motor<'a> {
 
     pub fn set_input_pos(&self, rot: f32) -> CANRequest {
         let data = combine_data(float_to_data(rot), [0; 4]);
-        {
-            ticket(*self.id, Write(SetInputPosition), data)
-        }
+        ticket(*self.id, Write(SetInputPosition), data)
     }
     pub fn set_input_vel(&self, speed: f32) -> CANRequest {
         let data = combine_data(float_to_data(speed), [0; 4]);
-        {
-            ticket(*self.id, Write(SetInputVelocity), data)
-        }
+        ticket(*self.id, Write(SetInputVelocity), data)
     }
     fn set_input_torque() {
         unimplemented!()

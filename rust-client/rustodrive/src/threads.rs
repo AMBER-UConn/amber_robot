@@ -6,13 +6,13 @@ use std::{sync::{
 
 use crate::{
     commands::{self, ODriveCommand},
-    messages::{ODriveCANFrame, ODriveMessage, CANRequest}, response::ODriveResponse,
+    canframe::{ODriveCANFrame, ThreadCANFrame, CANRequest}, response::ODriveResponse,
 };
 
 pub(crate) trait CANThreadCommunicator {
     fn new(
         thread_name: &'static str,
-        requester: Sender<ODriveMessage>,
+        requester: Sender<ThreadCANFrame>,
         receiver: Receiver<ODriveResponse>,
         threads_alive: Arc<AtomicBool>,
     ) -> Self;
@@ -35,7 +35,7 @@ pub(crate) trait CANThreadCommunicator {
         let can_send = self.get_requester();
 
         // take the message and send it over the channel
-        match can_send.send(ODriveMessage {
+        match can_send.send(ThreadCANFrame {
             thread_name: self.thread_name(),
             body: frame,
         }) {
@@ -46,7 +46,7 @@ pub(crate) trait CANThreadCommunicator {
 
     /// This returns the Sender portion of the communication channel to the CANManager
     /// This thread ---> CANManager (aka sends requests)
-    fn get_requester(&self) -> &Sender<ODriveMessage>;
+    fn get_requester(&self) -> &Sender<ThreadCANFrame>;
 
     /// This returns the receive portion of the communication channel from the CANManager
     /// This thread <--- CANManager (aka receives requests)
@@ -99,7 +99,7 @@ pub(crate) trait CANThreadCommunicator {
 
 pub struct ReadWriteCANThread {
     thread_name: &'static str,
-    requester: Sender<ODriveMessage>,
+    requester: Sender<ThreadCANFrame>,
     receiver: Receiver<ODriveResponse>,
     threads_alive: Arc<AtomicBool>,
 }
@@ -107,7 +107,7 @@ pub struct ReadWriteCANThread {
 impl CANThreadCommunicator for ReadWriteCANThread {
     fn new(
         thread_name: &'static str,
-        requester: Sender<ODriveMessage>,
+        requester: Sender<ThreadCANFrame>,
         receiver: Receiver<ODriveResponse>,
         threads_alive: Arc<AtomicBool>,
     ) -> Self {
@@ -123,7 +123,7 @@ impl CANThreadCommunicator for ReadWriteCANThread {
         self.thread_name
     }
 
-    fn get_requester(&self) -> &Sender<ODriveMessage> {
+    fn get_requester(&self) -> &Sender<ThreadCANFrame> {
         &self.requester
     }
 
@@ -135,7 +135,7 @@ impl CANThreadCommunicator for ReadWriteCANThread {
 impl ReadWriteCANThread {
     pub fn new(
         thread_name: &'static str,
-        requester: Sender<ODriveMessage>,
+        requester: Sender<ThreadCANFrame>,
         receiver: Receiver<ODriveResponse>,
         threads_alive: Arc<AtomicBool>,
     ) -> Self {
@@ -157,7 +157,7 @@ impl ReadWriteCANThread {
 
 pub struct ReadOnlyCANThread {
     thread_name: &'static str,
-    requester: Sender<ODriveMessage>,
+    requester: Sender<ThreadCANFrame>,
     receiver: Receiver<ODriveResponse>,
     threads_alive: Arc<AtomicBool>,
 }
@@ -165,7 +165,7 @@ pub struct ReadOnlyCANThread {
 impl CANThreadCommunicator for ReadOnlyCANThread {
     fn new(
         thread_name: &'static str,
-        requester: Sender<ODriveMessage>,
+        requester: Sender<ThreadCANFrame>,
         receiver: Receiver<ODriveResponse>,
         threads_alive: Arc<AtomicBool>,
     ) -> Self {
@@ -181,7 +181,7 @@ impl CANThreadCommunicator for ReadOnlyCANThread {
         self.thread_name
     }
 
-    fn get_requester(&self) -> &Sender<ODriveMessage> {
+    fn get_requester(&self) -> &Sender<ThreadCANFrame> {
         &self.requester
     }
 
@@ -193,7 +193,7 @@ impl CANThreadCommunicator for ReadOnlyCANThread {
 impl ReadOnlyCANThread {
     pub fn new(
         thread_name: &'static str,
-        requester: Sender<ODriveMessage>,
+        requester: Sender<ThreadCANFrame>,
         receiver: Receiver<ODriveResponse>,
         threads_alive: Arc<AtomicBool>,
     ) -> Self {
@@ -234,7 +234,7 @@ mod tests {
 
     use crate::{
         commands::{ODriveCommand, ReadComm},
-        messages::{ODriveMessage, CANRequest},
+        canframe::{ThreadCANFrame, CANRequest},
         tests::ThreadStub,
         threads::CANThreadCommunicator, response::{ErrorResponse, ODriveError},
     };
@@ -250,7 +250,7 @@ mod tests {
             cmd: ODriveCommand::Read(ReadComm::Heartbeat),
             data: [0, 0, 0, 0, 0, 0, 0, 0],
         };
-        let expected_msg = ODriveMessage {
+        let expected_msg = ThreadCANFrame {
             thread_name: "test",
             body: can_frame,
         };
