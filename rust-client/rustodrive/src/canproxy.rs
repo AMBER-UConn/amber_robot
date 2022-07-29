@@ -67,14 +67,14 @@ impl CANProxy {
     /// ```
     /// use rustodrive::canproxy::CANProxy;
     /// use rustodrive::messages::CANRequest;
-    /// use rustodrive::commands::{ODriveCommand, Read};
+    /// use rustodrive::commands::{ODriveCommand::Read, ReadComm};
     ///
     /// let mut can_proxy = CANProxy::new("can0");
     /// can_proxy.register_rw("thread 1", |can_read_write| {
     ///     // .request() blocks until a response is received
     ///     can_read_write.request(CANRequest {
     ///         axis: 1,
-    ///         cmd: ODriveCommand::Read(Read::GetVBusVoltage),
+    ///         cmd: Read(ReadComm::GetVBusVoltage),
     ///         data: [0; 8]
     ///     });
     /// });
@@ -126,13 +126,13 @@ impl CANProxy {
     /// # Example
     /// ```
     /// use rustodrive::canproxy::CANProxy;
-    /// use rustodrive::commands::Read;
+    /// use rustodrive::commands::ReadComm;
     ///
     /// let mut can_proxy = CANProxy::new("can0");
     /// can_proxy.register_ro("thread 1", |can_read| {
     ///     // .request() blocks until a response is received
     ///     let axis = 1;
-    ///     let cmd = Read::GetVBusVoltage;    
+    ///     let cmd = ReadComm::GetVBusVoltage;    
     ///     can_read.request(axis, cmd);
     /// });
     ///
