@@ -9,8 +9,6 @@ use std::{error::Error};
 
 pub mod test_ui;
 
-
-
 fn init_motors(odrv: &ODriveGroup) {
     odrv.all_axes(|ax| ax.set_state(EncoderIndexSearch));
 }
