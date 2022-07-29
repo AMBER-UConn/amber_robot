@@ -9,8 +9,6 @@ pub mod axis;
 pub mod response;
 pub mod utils;
 
-pub mod test_ui;
-
 #[cfg(test)]
 pub(crate) mod tests {
     use crate::{
@@ -23,6 +21,7 @@ pub(crate) mod tests {
         Arc,
     };
 
+    #[allow(dead_code)]
     pub(crate) struct ThreadStub {
         pub thread_id: &'static str,
         pub proxy_receiver: Receiver<ODriveMessage>,

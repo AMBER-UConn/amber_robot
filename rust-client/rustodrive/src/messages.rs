@@ -10,7 +10,7 @@ pub fn ticket(id: usize, command: ODriveCommand, data: [u8; 8]) -> CANRequest {
     CANRequest { axis: id as u32, cmd: command, data: data }
 }
 
-pub fn read_CAN(id: usize, command: ReadComm) -> CANRequest {
+pub fn read_can(id: usize, command: ReadComm) -> CANRequest {
     ticket(id, ODriveCommand::Read(command), [0; 8])
 }
 

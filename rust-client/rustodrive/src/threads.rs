@@ -236,7 +236,7 @@ mod tests {
         commands::{ODriveCommand, ReadComm},
         messages::{ODriveMessage, CANRequest},
         tests::ThreadStub,
-        threads::CANThreadCommunicator, response::{ODriveResponse, ErrorResponse, ODriveError},
+        threads::CANThreadCommunicator, response::{ErrorResponse, ODriveError},
     };
 
     #[test]
@@ -271,7 +271,7 @@ mod tests {
         let fake_request = CANRequest {axis: 1, cmd: ODriveCommand::Read(ReadComm::EncoderError), data: [0;8]};
         let response = Err(ErrorResponse{ request: fake_request, err: ODriveError::FailedToSend});
 
-        thread.proxy_sender.send(response.clone());
+        thread.proxy_sender.send(response.clone()).unwrap();
         let response_received = thread.rw_communicator.proxy_to_thread();
 
         assert_eq!(response, response_received);

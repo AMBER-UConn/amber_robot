@@ -1,4 +1,4 @@
-use crate::{
+use rustodrive::{
     commands::{
         ControlMode, InputMode, ODriveAxisState::*,
     },
@@ -15,19 +15,14 @@ pub fn ui_start(odrives: ODriveGroup) {
     }
 
     let mut is_closed_loop = false;
-    let mut inp = String::new();
 
-    while true {
-        //println!();
-        //stdin().read_line(&mut inp).unwrap();
+    loop {
         let disp_txt = format!("Input (C - Toggle Closed Loop ({}), V - Input Velocity, P - Input Position, CM - Control Mode / Input Mode) > ", is_closed_loop);
-        inp = input(disp_txt.as_str());
-        //println!("{}", inp.to_uppercase());
-        match inp.to_uppercase().as_str() {
+        match input(disp_txt.as_str()).to_uppercase().as_str() {
 
             // Toggle Control Mode
             "C" => {
-                if (is_closed_loop) {
+                if is_closed_loop {
                     odrives.all_axes(|ax| ax.set_state(Idle));
                     is_closed_loop = false;
                 } else {
@@ -62,11 +57,11 @@ pub fn ui_start(odrives: ODriveGroup) {
                         .unwrap_or_default();
 
                 odrives.all_axes(move |ax| {
-                    let CM = 
+                    let control_mode = 
                         TryInto::<ControlMode>::try_into(inp_cm).unwrap_or(ControlMode::VelocityControl);
-                    let IM =
+                    let input_mode =
                         TryInto::<InputMode>::try_into(inp_im).unwrap_or(InputMode::Passthrough);
-                    ax.motor.set_control_mode(CM, IM)
+                    ax.motor.set_control_mode(control_mode, input_mode)
                 });
             }
 

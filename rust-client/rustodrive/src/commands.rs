@@ -1,4 +1,4 @@
-use crate::{back_to_enum, messages::{ODriveCANFrame}};
+use crate::{back_to_enum};
 
 back_to_enum! {
     #[derive(Copy, Clone, PartialEq, Debug, Eq, Hash)]

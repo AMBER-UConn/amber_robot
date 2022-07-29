@@ -5,9 +5,9 @@ use rustodrive::{
     threads::ReadWriteCANThread,
 };
 use signal_hook::{consts::SIGINT, iterator::Signals};
-use std::{error::Error, io::stdin};
+use std::{error::Error};
 
-use rustodrive::test_ui;
+pub mod test_ui;
 
 
 
@@ -16,13 +16,6 @@ fn init_motors(odrv: &ODriveGroup) {
 }
 
 fn odrive_main(can_read_write: ReadWriteCANThread) {
-    fn input(txt: &str) -> String {
-        let mut out = String::new();
-        println!("{}", txt);
-        stdin().read_line(&mut out).unwrap();
-        return out.trim().to_string();
-    }
-
     let odrives = ODriveGroup::new(can_read_write, &[0, 1, 2, 3, 4, 5]);
 
     init_motors(&odrives);

@@ -23,7 +23,7 @@ impl ResponseType {
     pub fn body(self) -> (CANRequest, CANResponse) {
         match self {
             ResponseType::Body{ request: req, response: resp} => (req, resp),
-            ResponseType::Bodyless { req} => {
+            ResponseType::Bodyless { req: _} => {
                 panic!("Write requests do not return a response body")
             }
         }
@@ -31,7 +31,7 @@ impl ResponseType {
 
     pub fn request(self) -> CANRequest {
         match self {
-            ResponseType::Body { request: req, response: resp} => req,
+            ResponseType::Body { request: req, response: _resp} => req,
             ResponseType::Bodyless { req} => req,
         }
     }

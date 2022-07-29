@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use crate::{
     axis::{Axis, AxisID},
-    messages::{ODriveCANFrame, CANRequest},
+    messages::{CANRequest},
     response::ODriveResponse,
     threads::ReadWriteCANThread,
 };
@@ -170,7 +170,7 @@ mod tests {
 
         let (send, rcv) = channel();
 
-        let mut expected_request = CANRequest {
+        let expected_request = CANRequest {
             axis: 1,
             cmd: ODriveCommand::Write(WriteComm::SetAxisRequestedState),
             data: [FullCalibrationSequence as u8, 0, 0, 0, 0, 0, 0, 0],
@@ -180,7 +180,7 @@ mod tests {
             let odrives = ODriveGroup::new(can_rw, &[0, 1, 2, 3, 4, 5]);
 
             let responses = odrives.axis(&1, |ax| ax.set_state(FullCalibrationSequence));
-            send.send(responses);
+            send.send(responses).unwrap();
         });
         let stop_all = proxy.begin();
 
@@ -210,7 +210,7 @@ mod tests {
             let odrives = ODriveGroup::new(can_rw, &[0, 1, 2, 3, 4, 5]);
 
             let responses = odrives.all_axes(|ax| ax.set_state(FullCalibrationSequence));
-            send.send(responses);
+            send.send(responses).unwrap();
         });
         let stop_all = proxy.begin();
 

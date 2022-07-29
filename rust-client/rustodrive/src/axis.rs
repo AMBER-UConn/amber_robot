@@ -1,8 +1,9 @@
-use socketcan::CANFrame;
+#![allow(dead_code)]
+#![allow(unused_variables)]
 
 use crate::{
     commands::{ODriveAxisState, ODriveCommand::{Read, Write}, WriteComm::*, ReadComm::*, ControlMode, InputMode},
-    messages::{ticket, CANRequest, ODriveCANFrame},
+    messages::{ticket, CANRequest},
     utils::{combine_data, float_to_data},
 };
 

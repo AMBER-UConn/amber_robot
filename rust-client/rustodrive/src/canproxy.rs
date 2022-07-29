@@ -92,7 +92,7 @@ impl CANProxy {
         F: FnOnce(ReadWriteCANThread) + std::marker::Send + 'static,
     {
         match self.rw_thread {
-            Some(thread_id) => {
+            Some(_thread_id) => {
                 panic!("Cannot register more than 1 thread to have write access to CAN device")
             }
             None => {
@@ -459,7 +459,7 @@ mod tests {
 
     use crate::{
         commands::{ODriveCommand, ReadComm, WriteComm},
-        messages::{CANRequest}, tests::wait_for_msgs, response::{ManyResponses, ODriveResponse, ResponseType},
+        messages::{CANRequest}, tests::wait_for_msgs, response::{ManyResponses, ResponseType},
     };
 
     use super::CANProxy;
@@ -468,13 +468,13 @@ mod tests {
     fn test_register_thread() {
         let mut can_proxy = CANProxy::new("fakecan");
 
-        can_proxy.register_ro("thread 1", |read_write_can| {});
-        can_proxy.register_ro("thread 2", |read_write_can| {});
-        can_proxy.register_rw("thread 3", |read_write_can| {});
+        can_proxy.register_ro("thread 1", |_| {});
+        can_proxy.register_ro("thread 2", |_| {});
+        can_proxy.register_rw("thread 3", |_| {});
 
         assert_eq!(can_proxy.threads.len(), 3);
 
-        can_proxy.unregister("thread 1");
+        can_proxy.unregister("thread 1").unwrap();
         assert_eq!(can_proxy.threads.len(), 2);
     }
 
@@ -483,15 +483,15 @@ mod tests {
     fn test_register_duplicate() {
         let mut can_proxy = CANProxy::new("fakecan");
 
-        can_proxy.register_ro("thread 1", |read_write_can| {});
-        can_proxy.register_ro("thread 1", |read_write_can| {});
+        can_proxy.register_ro("thread 1", |_| {});
+        can_proxy.register_ro("thread 1", |_| {});
     }
 
     #[test]
     fn test_unregister_rw_thread() {
         let mut can_proxy = CANProxy::new("fakecan");
-        can_proxy.register_rw("thread 1", |read_write_can| {});
-        can_proxy.register_ro("thread 2", |read_can| {});
+        can_proxy.register_rw("thread 1", |_| {});
+        can_proxy.register_ro("thread 2", |_| {});
 
         assert_ne!(can_proxy.rw_thread, None);
         assert_eq!(can_proxy.threads.len(), 2);
@@ -500,7 +500,7 @@ mod tests {
         // can_proxy.unregister("thread 2");
 
         can_proxy.stop_threads();
-        can_proxy.join_registered();
+        can_proxy.join_registered().unwrap();
 
         assert_eq!(can_proxy.rw_thread, None);
         assert_eq!(can_proxy.threads.len(), 0);
@@ -510,8 +510,8 @@ mod tests {
     #[should_panic]
     fn test_register_duplicate_rw_thread() {
         let mut can_proxy = CANProxy::new("fakecan");
-        can_proxy.register_rw("thread 1", |can_read_write| {});
-        can_proxy.register_rw("thread 2", |can_read_write| {});
+        can_proxy.register_rw("thread 1", |_| {});
+        can_proxy.register_rw("thread 2", |_| {});
     }
 
     #[test]
