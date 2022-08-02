@@ -1,6 +1,6 @@
 use rustodrive::{
     canproxy::CANProxy,
-    commands::{ODriveAxisState::*, ControlMode, InputMode},
+    state::{ODriveAxisState::*, ControlMode, InputMode},
     odrivegroup::ODriveGroup,
     threads::ReadWriteCANThread,
 };

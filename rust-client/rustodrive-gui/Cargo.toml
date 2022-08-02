@@ -9,6 +9,10 @@ edition = "2021"
 
 [dependencies]
 rustodrive = { path = "../rustodrive", features = ["mock-socket"] }
+imgui = "0.8.2"
+imgui-winit-support = "0.8.2"
 
+glow = "0.10.0"
+memoffset = "0.6.4"
 
 [dev-dependencies]
