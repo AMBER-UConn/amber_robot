@@ -5,10 +5,7 @@ use rustodrive::{
     threads::ReadWriteCANThread,
 };
 use signal_hook::{consts::SIGINT, iterator::Signals};
-use ui_test::ui_main;
 use std::{error::Error};
-
-pub mod ui_test;
 
 fn init_motors(odrv: &ODriveGroup) {
     odrv.all_axes(|ax| ax.set_state(EncoderIndexSearch));
@@ -23,7 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // can_proxy.register_rw("thread 1", ui_main);
     // let stop_all = can_proxy.begin();
 
-    ui_main();
+    rustodrive_gui::ui_test::ui_main();
 
     let mut signals = Signals::new(&[SIGINT])?;
     for sig in signals.forever() {
