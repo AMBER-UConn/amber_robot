@@ -1,7 +1,11 @@
 use rustodrive::{
     canproxy::CANProxy,
     odrivegroup::ODriveGroup,
-    threads::ReadWriteCANThread, casts::Heartbeat, response::{Success}, utils::ResultAll,
+    threads::ReadWriteCANThread, 
+    casts::{Heartbeat, Temperature}, 
+    response::{Success}, 
+    utils::ResultAll,
+    state::{AxisState::*, ReadComm::*, WriteComm::*, ControlMode::*, InputMode::*},
 };
 use signal_hook::{consts::SIGINT, iterator::Signals};
 use std::{error::Error};
@@ -19,17 +23,14 @@ fn odrive_main(can_read_write: ReadWriteCANThread) {
 
     init_motors(&odrives);
 
-    // test_ui::ui_start(odrives);
-    // odrives.all_axes(|ax| ax.motor.set_control_mode(ControlMode::VelocityControl, InputMode::VelRamp));
-    // odrives.all_axes(|ax| ax.set_state(ClosedLoop));
-    // odrives.all_axes(|ax| ax.motor.set_input_pos(180 as f32 / 360 as f32));
-    // odrives.all_axes(|ax| ax.motor.set_input_vel(10.0));
-    // odrives.axis(&0, |ax| ax.set_state(Idle)).unwrap();
-    
+    odrives.all_axes::<(), _>(|ax| ax.set_state(Idle));
     let heartbeat: Vec<Success<Heartbeat>> = odrives.all_axes(|ax| ax.get_heartbeat()).unwrap_all();
-    let heartbeat: Success<Heartbeat> = odrives.axis(&1, |ax| ax.get_heartbeat()).unwrap();
+    //let heartbeat: Success<Heartbeat> = odrives.axis(&1, |ax| ax.get_heartbeat()).unwrap();
 
-    //InputVel when [1; 8]: [1.40e-45, 3.59e-43, 9.18e-41, 2.35e-38, 0, 0, 0, 0]
+    let temp: Vec<Success<Temperature>> = odrives.all_axes(|ax| ax.get_temperatures()).unwrap_all();
+
+    println!("hb: {:?}\n temp: {:?}", heartbeat, temp);
+
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
