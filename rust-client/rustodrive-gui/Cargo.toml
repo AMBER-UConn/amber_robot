@@ -8,7 +8,7 @@ edition = "2021"
 [features]
 
 [dependencies]
-rustodrive = { path = "../rustodrive", features = ["mock-socket"] }
+rustodrive = { path = "../rustodrive" }
 imgui = "0.8.2"
 imgui-winit-support = "0.8.2"
 
@@ -16,3 +16,4 @@ glow = "0.10.0"
 memoffset = "0.6.4"
 
 [dev-dependencies]
+rustodrive = { path = "../rustodrive", features = ["mock-socket"] }
