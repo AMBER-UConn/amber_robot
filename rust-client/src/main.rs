@@ -17,7 +17,6 @@ fn init_motors(odrv: &ODriveGroup) {
     std::thread::sleep_ms(2000);
 }
 
-// TODO add remaining panic tests for type conversions
 // TODO update documentation to reflect new changes
 fn odrive_main(can_read_write: ReadWriteCANThread) {
     let odrives = ODriveGroup::new(can_read_write, &[0, 1, 2, 3, 4, 5]);
@@ -25,7 +24,6 @@ fn odrive_main(can_read_write: ReadWriteCANThread) {
     init_motors(&odrives);
 
     odrives.all_axes::<(), _>(|ax| ax.set_state(Idle));
-    
     let heartbeat: Vec<Success<Heartbeat>> = odrives.all_axes(|ax| ax.get_heartbeat()).unwrap_all();
     //let heartbeat: Success<Heartbeat> = odrives.axis(&1, |ax| ax.get_heartbeat()).unwrap();
 
