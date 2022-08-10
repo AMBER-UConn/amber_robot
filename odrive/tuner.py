@@ -66,6 +66,21 @@ class UI:
 
         return sel
 
+    def set_vel_pos(con_id, controller):
+        x = int(input(  
+                "Set", 
+                "input vel" if con_id == 0 else "input pos",
+                "> ",
+                " " * 10,
+                end = "/r"
+            ))
+        match x:
+            case 0: # velocity
+                controller.inp_vel = x
+            case 1: # position
+                controller.inp_pos = x
+        
+        
 
     def tuner():
         axis_id = UI.axis_select()
@@ -132,6 +147,9 @@ class UI:
             if kb.is_pressed("h"):
                 if con_id is 0:
                     con_config.vel_gain /= 2
+
+            if kb.is_pressed("s"):
+                UI.set_vel_pos(con_id, axis.controller)
 
             if kb.is_pressed("q"):
                 break
