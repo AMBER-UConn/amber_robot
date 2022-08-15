@@ -18,15 +18,34 @@ pub fn test() {
     }
 }
 
+fn twos_complement() -> i32 {
+    1
+}
 fn get_acc(port: &mut Box<dyn SerialPort>) {
-    port.write(&[0x34]).expect("Failed to write");
-
-    let mut output = [0u8; 32];
+    port.write(&[0x51]).expect("Failed to write");
+    let _ = twos_complement();
+    let mut output = [0u8;11];
     port.read_exact(&mut output);
-    println!("{:?}", output);
-    // for acc in 0..output.len() - 1 {
-    //     let (accL, accH) = (output[acc] as i16, output[acc + 1] as i16);
-    //     print!("{:?}, ", (((accH << 8) | accL) as f32 /32768.0 * 16.0));
-    // }
-    // println!("\n");
+
+    // println!("{}", ((output[4] as u16) << 8) | (output[3] as u16));
+    if output[1] == 0x51 {
+        println!("{:?}", output);
+        let mut calc: i32 = -1 * output[10] as i32;
+        for val in output.iter() {
+            calc += *val as i32;
+        }
+            
+        println!("calculated: {} ---- actual: {}", calc >> 2, output[10]);
+
+        for i in (  2..output.len() - 2 - 1).step_by(2) {
+            let (accL, accH) = (output[i] as u16, output[i + 1] as u16);
+            print!("{:?}, ", (((accH << 8) | accL) as f32 /32768.0 * 16.0 * 9.81));
+        }
+        // for (i, acc) in &output[2..-2].chunks(2).enumerate() {
+        //     let (accL, accH) = (acc[0] as u16, acc[1] as u16);
+        //     print!("{:?}, ", (((accH << 8) | accL) as f32 /32768.0 * 16.0));
+        // }
+    println!("\n");
+    }
+    
 }
