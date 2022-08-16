@@ -12,7 +12,7 @@ pub struct IMU {
 
 impl IMU {
 
-    fn new(port_path: Option<&str>, baud_rate: Option<u32>) -> IMU {
+    pub fn new(port_path: Option<&str>, baud_rate: Option<u32>) -> IMU {
         let p = port_path.unwrap_or("/dev/ttyUSB0");
         let b_r = baud_rate.unwrap_or(9600);
 
@@ -33,9 +33,10 @@ impl IMU {
         return output;
     }
 
-    fn get_acc(&mut self) {
+    pub fn get_acc(&mut self) {
         // Requests acceleration info from imu and writes it to output variable
-        let mut output = self.request(&[0x51]);
+        let output = self.request(&[0x51]);
+
         // println!("{}", ((output[4] as u16) << 8) | (output[3] as u16));
 
         // Compares checksum to make sure no errors occured
@@ -51,7 +52,7 @@ impl IMU {
             // Prints out accX accY accZ for our viewing pleasure
             for i in (  2..output.len() - 2 - 1).step_by(2) {
                 let (accL, accH) = (output[i] as u16, output[i + 1] as u16);
-                print!("{:?}, ", (((accH << 8) | accL) as f32 /32768.0 * 16.0 * 9.81));
+                println!("{:?}, ", (((accH << 8) | accL) as f32 /32768.0 * 16.0 * 9.81));
             }
             // for (i, acc) in &output[2..-2].chunks(2).enumerate() {
             //     let (accL, accH) = (acc[0] as u16, acc[1] as u16);
@@ -62,9 +63,9 @@ impl IMU {
         
     }
 
-    fn get_ang_vel(&mut self) {
+    pub fn get_ang_vel(&mut self) {
         // Requests angular velocity info from imu and writes it to output variable
-        let mut output = self.request(&[0x52]);
+        let output = self.request(&[0x52]);
 
         // Compares checksum to make sure no errors occured
         if output[1] == 0x52 {
@@ -79,19 +80,18 @@ impl IMU {
             // Prints out wX wY wX for our viewing pleasure
             for i in (2..output.len()-2-1).step_by(2) {
                 let (velL, velH) = (output[i] as u16, output[i+1] as u16);
-                print!("{:?} ", (((velH<<8)|velL)/32768*2000))
+                println!("{:?} ", (((velH<<8)|velL)/32768*2000))
             }
         println!("\n");
         }
     }
 
-    fn get_ang(&mut self) {
+    pub fn get_ang(&mut self) {
         // Requests angle info from imu and writes it to output variable
-        let mut output = self.request(&[0x53]);
+        let output = self.request(&[0x53]);
 
         // Compares checksum to make sure no errors occured
         if output[1] == 0x53 {
-            println!("{:?}", output);
             let mut calc: i32 = -1 * output[10] as i32;
             for val in output.iter() {
                 calc += *val as i32;
@@ -102,7 +102,7 @@ impl IMU {
             // Prints out ROLL PITCH YAW (degrees) for our viewing pleasure
             for i in (2..output.len()-2-1).step_by(2) {
                 let (angL, angH) = (output[i] as u16, output[i+1] as u16);
-                print!("{:?} ", (((angH<<8)|angL)/32768*180))
+                println!("{:?} ", (((angH<<8)|angL)/32768*180))
             }
         println!("\n");
         }
