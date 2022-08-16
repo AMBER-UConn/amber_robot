@@ -26,10 +26,11 @@ impl IMU {
 
     fn request(&mut self, buffer: &[u8]) -> [u8; 11] {
         // Requests buffer info from imu and writes it to output variable
-        self.port.write(buffer).expect("Failed to write");
+        self.port.write(buffer).expect("Failed to write!");
         //let _ = twos_complement();
         let mut output = [0u8;11];
-        self.port.read_exact(&mut output);
+        self.port.read_exact(&mut output).expect("Failed to read!");
+        assert!([output[1]] == *buffer, "Checksum failed!");
         return output;
     }
 
