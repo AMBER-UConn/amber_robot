@@ -98,7 +98,7 @@
     <child
       link="upper_leg" />
     <axis
-      xyz="0 -1 0" />
+      xyz="0 1 0" />
   </joint>
   <link
     name="lower_leg">
