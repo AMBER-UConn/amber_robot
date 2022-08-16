@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 k = "0.28.0"
+
+[env]
+RUST_BACKTRACE=1
