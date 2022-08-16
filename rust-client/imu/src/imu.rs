@@ -25,6 +25,17 @@ impl IMU {
     }
 
 
+    fn checksum(data: [u8; 11]) -> [u8; 4] { 
+        data.split_last().unwrap().1
+            .iter().map(|x| *x as u32)
+            .sum::<u32>()
+            .to_be_bytes()
+    }
+
+    fn check_checksum(data: [u8; 11]) -> bool {
+        IMU::checksum(data)[3] == data[10]
+    }
+
     fn request(&mut self, buffer: &[u8]) -> [u8; 11] {
         // Requests buffer info from imu and writes it to output variable
         self.port.write(buffer).expect("Failed to write!");
@@ -33,15 +44,15 @@ impl IMU {
         while [output[1]] != *buffer {
             self.port.read_exact(&mut output).expect("Failed to read!");
         }
-        println!("{:?}", output);
-         //println!("{:?}", output.split_last().unwrap().1.iter().map(|x| *x as u32).sum::<u32>().to_be_bytes());
+        //println!("{:?}", output);
+        //println!("{:?}", output.split_last().unwrap().1.iter().map(|x| *x as u32).sum::<u32>().to_be_bytes());
 
         // 85 dec = 0x55 hex
         assert!(output[0] == 0x55 && 
-                output.split_last().unwrap().1
-                      .iter().map(|x| *x as u32)
-                      .sum::<u32>()
-                      .to_be_bytes()[3] == output[10], "Checksum failed!");
+                IMU::check_checksum(output), "Checksum failed! Data is {:?}, Checksum is {:?}, calculated is {:?}",
+                                              output,    
+                                              output[10], 
+                                              IMU::checksum(output));
         return output;
     }
 
