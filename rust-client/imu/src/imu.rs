@@ -36,7 +36,7 @@ impl IMU {
         IMU::checksum(data)[3] == data[10]
     }
 
-    fn request(&mut self, buffer: &[u8]) -> [u8; 11] {
+    fn request(&mut self, buffer: &[u8]) -> Result<[u8; 11], String> {
         // Requests buffer info from imu and writes it to output variable
         self.port.write(buffer).expect("Failed to write!");
         //let _ = twos_complement();
@@ -48,17 +48,35 @@ impl IMU {
         //println!("{:?}", output.split_last().unwrap().1.iter().map(|x| *x as u32).sum::<u32>().to_be_bytes());
 
         // 85 dec = 0x55 hex
-        assert!(output[0] == 0x55 && 
-                IMU::check_checksum(output), "Checksum failed! Data is {:?}, Checksum is {:?}, calculated is {:?}",
-                                              output,    
-                                              output[10], 
-                                              IMU::checksum(output));
-        return output;
+        if output[0] != 0x55 {
+            return Err(format!("Incorrect data format! Data: {:?}", output));
+        }
+        if ! IMU::check_checksum(output) {
+            return Err(format!("Checksum failed! Data is {:?}, Checksum is {:?}, calculated is {:?}",
+                                output,    
+                                output[10], 
+                                IMU::checksum(output)));
+        }
+        //assert!(output[0] == 0x55 && 
+        //        IMU::check_checksum(output), "Checksum failed! Data is {:?}, Checksum is {:?}, calculated is {:?}",
+        //                                      output,    
+        //                                      output[10], 
+        //                                      IMU::checksum(output));
+        return Ok(output);
     }
 
     pub fn get_acc(&mut self) {
         // Requests acceleration info from imu and writes it to output variable
-        let output = self.request(&[0x51]);
+        let output = 
+        match self.request(&[0x51]) {
+            Ok(T) => {
+                T
+            },
+            Err(E) => {
+                println!("{}", E);
+                return;
+            }
+        };
 
         // println!("{}", ((output[4] as u16) << 8) | (output[3] as u16));
 
@@ -76,7 +94,16 @@ impl IMU {
 
     pub fn get_ang_vel(&mut self) {
         // Requests angular velocity info from imu and writes it to output variable
-        let output = self.request(&[0x52]);
+        let output = 
+        match self.request(&[0x52]) {
+            Ok(T) => {
+                T
+            },
+            Err(E) => {
+                println!("{}", E);
+                return;
+            }
+        };
 
             // Prints out wX wY wX for our viewing pleasure
             for i in (2..output.len()-2-1).step_by(2) {
@@ -88,7 +115,16 @@ impl IMU {
 
     pub fn get_ang(&mut self) {
         // Requests angle info from imu and writes it to output variable
-        let output = self.request(&[0x53]);
+        let output = 
+        match self.request(&[0x53]) {
+            Ok(T) => {
+                T
+            },
+            Err(E) => {
+                println!("{}", E);
+                return;
+            }
+        };
 
         // Compares checksum to make sure no errors occured
 
