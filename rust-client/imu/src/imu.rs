@@ -64,7 +64,7 @@ impl IMU {
 
             // Prints out accX accY accZ for our viewing pleasure
             for i in (  2..output.len() - 2 - 1).step_by(2) {
-                let (accL, accH) = (output[i] as i32, output[i + 1] as i32);
+                let (accL, accH) = (output[i] as i16, output[i + 1] as i16);
                 print!("{:?}, ", (((accH << 8) | accL) as f32 / 32768.0 * 16.0 * 9.81));
             }
             // for (i, acc) in &output[2..-2].chunks(2).enumerate() {
@@ -80,7 +80,7 @@ impl IMU {
 
             // Prints out wX wY wX for our viewing pleasure
             for i in (2..output.len()-2-1).step_by(2) {
-                let (velL, velH) = (output[i] as i32, output[i+1] as i32);
+                let (velL, velH) = (output[i] as i16, output[i+1] as i16);
                 print!("{:?} ", (((velH<<8)|velL) as f32 / 32768.0 * 2000.0))
             }
         println!("\n");
@@ -94,7 +94,7 @@ impl IMU {
 
             // Prints out ROLL PITCH YAW (degrees) for our viewing pleasure
             for i in (2..output.len()-2-1).step_by(2) {
-                let (angL, angH) = (output[i] as i32, output[i+1] as i32);
+                let (angL, angH) = (output[i] as i16, output[i+1] as i16);
                 print!("{:?} ", (((angH<<8)|angL) as f32 / 32768.0 * 180.0))
             }
         println!("\n");
