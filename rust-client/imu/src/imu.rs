@@ -82,7 +82,7 @@ impl IMU {
             }
         };
 
-        return Ok(IMU::result_parser(output, Some(180.0)));
+        return Ok(IMU::result_parser(output, Some(16.0)));
     }
 
     pub fn get_ang_vel(&mut self) -> Result<[f32; 3], String>  {
