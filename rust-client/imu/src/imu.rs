@@ -4,10 +4,12 @@ use std::time::Duration;
 use serialport::SerialPort;
 
 pub struct IMU {
-    port: Box<dyn SerialPort>
+    port: Box<dyn SerialPort>,
+    gravity: f32
 }
 
 impl IMU {
+
 
     pub fn new(port_path: Option<&str>, baud_rate: Option<u32>) -> IMU {
         let p = port_path.unwrap_or("/dev/ttyUSB0");
@@ -17,7 +19,8 @@ impl IMU {
             port: serialport::new(p, b_r)
                   .timeout(Duration::from_millis(1000))
                   .open()
-                  .expect("Failed to open port")
+                  .expect("Failed to open port"),
+            gravity: 9.81
         }
     }
 
@@ -82,7 +85,7 @@ impl IMU {
             }
         };
 
-        return Ok(IMU::result_parser(output, Some(16.0)));
+        return Ok(IMU::result_parser(output, Some(16.0 * self.gravity)));
     }
 
     pub fn get_ang_vel(&mut self) -> Result<[f32; 3], String>  {
