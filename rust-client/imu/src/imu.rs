@@ -136,11 +136,11 @@ pub fn test() {
         // println!("{:?}", serial_buf);
 
         println!("ACCELERATION:");
-        imu.get_acc();
+        println!("{:?}", imu.get_acc().unwrap());
         println!("ANGULAR VELOCITY:");
-        imu.get_ang_vel();
+        println!("{:?}", imu.get_ang_vel().unwrap());
         println!("ANGLE (ROLL PITCH YAW):");
-        imu.get_ang();
+        println!("{:?}", imu.get_ang().unwrap());
 
 
     }
