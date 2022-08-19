@@ -80,7 +80,7 @@ impl IMU {
                 T
             },
             Err(E) => {
-                println!("{}", E);
+                //println!("{}", E);
                 return Err(E);
             }
         };
@@ -96,7 +96,7 @@ impl IMU {
                 T
             },
             Err(E) => {
-                println!("{}", E);
+                //println!("{}", E);
                 return Err(E);
             }
         };
@@ -113,7 +113,7 @@ impl IMU {
                 T
             },
             Err(E) => {
-                println!("{}", E);
+                //println!("{}", E);
                 return Err(E);
             }
         };
