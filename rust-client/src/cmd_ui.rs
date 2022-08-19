@@ -1,6 +1,6 @@
 use rustodrive::{
     state::{
-        ControlMode, InputMode, ODriveAxisState::*,
+        ControlMode, InputMode, AxisState::*,
     },
     odrivegroup::ODriveGroup,
 };
