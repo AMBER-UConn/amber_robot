@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 k = "0.28.0"
+urdf-rs = "0.6.6"
 
 [env]
 RUST_BACKTRACE=1

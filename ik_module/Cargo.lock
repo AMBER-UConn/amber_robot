@@ -55,6 +55,7 @@ name = "ik_module"
 version = "0.1.0"
 dependencies = [
  "k",
+ "urdf-rs",
 ]
 
 [[package]]
@@ -411,9 +412,9 @@ checksum = "c4f5b37a154999a8f3f98cc23a628d850e154479cd94decf3414696e12e31aaf"
 
 [[package]]
 name = "urdf-rs"
-version = "0.6.5"
+version = "0.6.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f42c031614b2ef192b3de0dc4e163d4f5f841b31c113b58f9279506d51571dd4"
+checksum = "bfcf8b03d26565e0fabb350009dabb1f58e40def52f383ef1686f6f4afb52181"
 dependencies = [
  "RustyXML",
  "once_cell",
