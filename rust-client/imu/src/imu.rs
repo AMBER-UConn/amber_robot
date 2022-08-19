@@ -72,7 +72,7 @@ impl IMU {
         return result;
     }
 
-    pub fn get_acc(&mut self) -> Result<[f32; 3], String>  {
+    pub fn acceleration(&mut self) -> Result<[f32; 3], String>  {
         // Requests acceleration info from imu and writes it to output variable
         let output = 
         match self.request(&0x51) {
@@ -88,7 +88,7 @@ impl IMU {
         return Ok(IMU::result_parser(output, Some(16.0 * self.gravity)));
     }
 
-    pub fn get_ang_vel(&mut self) -> Result<[f32; 3], String>  {
+    pub fn angular_velocity(&mut self) -> Result<[f32; 3], String>  {
         // Requests angular velocity info from imu and writes it to output variable
         let output = 
         match self.request(&0x52) {
@@ -105,7 +105,7 @@ impl IMU {
 
     }
 
-    pub fn get_ang(&mut self) ->  Result<[f32; 3], String> {
+    pub fn angle(&mut self) ->  Result<[f32; 3], String> {
         // Requests angle info from imu and writes it to output variable
         let output = 
         match self.request(&0x53) {
@@ -120,6 +120,8 @@ impl IMU {
 
         return Ok(IMU::result_parser(output, Some(180.0)));
     }
+
+    
 }
 
 
@@ -139,11 +141,11 @@ pub fn test() {
         // println!("{:?}", serial_buf);
 
         println!("ACCELERATION:");
-        println!("{:?}", imu.get_acc());
+        println!("{:?}", imu.acceleration());
         println!("ANGULAR VELOCITY:");
-        println!("{:?}", imu.get_ang_vel());
+        println!("{:?}", imu.angular_velocity());
         println!("ANGLE (ROLL PITCH YAW):");
-        println!("{:?}", imu.get_ang());
+        println!("{:?}", imu.angle());
 
 
     }
