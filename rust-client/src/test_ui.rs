@@ -36,13 +36,13 @@ pub fn ui_start(odrives: ODriveGroup) {
                 let inp_vel: f32 = input("Input Velocity > ")
                     .parse::<f32>()
                     .unwrap_or_default();
-                odrives.all_axes::<(), _>(|ax| ax.motor.set_input_vel(inp_vel));
+                odrives.all_axes::<()>(|ax| ax.motor.set_input_vel(inp_vel));
             }
 
             // Change Input Position
             "P" => {
                 let inp_pos: f32 = input("Input Velocity > ").parse::<f32>().unwrap();
-                odrives.all_axes::<(), _>(|ax| ax.motor.set_input_pos(inp_pos));
+                odrives.all_axes::<()>(|ax| ax.motor.set_input_pos(inp_pos));
             }
 
             // Change Control Mode & Input Mode
@@ -56,7 +56,7 @@ pub fn ui_start(odrives: ODriveGroup) {
                         .parse::<i32>()
                         .unwrap_or_default();
 
-                odrives.all_axes::<(), _>(move |ax| {
+                odrives.all_axes::<()>(move |ax| {
                     let control_mode = 
                         TryInto::<ControlMode>::try_into(inp_cm).unwrap_or(ControlMode::VelocityControl);
                     let input_mode =
@@ -65,12 +65,12 @@ pub fn ui_start(odrives: ODriveGroup) {
                 });
             }
 
-            "I" => {odrives.all_axes::<(), _>(|ax| ax.set_state(EncoderIndexSearch));},
+            "I" => {odrives.all_axes::<()>(|ax| ax.set_state(EncoderIndexSearch));},
 
             // Quit
             "Q" => {
                 println!("Quitting...");
-                odrives.all_axes::<(), _>(|ax| ax.set_state(Idle));
+                odrives.all_axes::<()>(|ax| ax.set_state(Idle));
                 std::process::exit(0);
             }
 
