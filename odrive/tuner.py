@@ -1,7 +1,7 @@
 '''
 
 Script to help make tuning the motor controllers easier.
-Some steps are automated, while others 
+Some steps are automated 
 
 Reference: https://docs.odriverobotics.com/v/0.5.4/control.html
 
@@ -66,6 +66,23 @@ class UI:
 
         return sel
 
+    def set_vel_pos(con_id, controller):
+        print(
+            "Set", 
+            "input vel" if con_id == 0 else "input pos",
+            "> ",
+            " " * 100,
+            end = ""
+        )
+        x = int(''.join([y for y in input() if y.isdigit()]))
+
+        match con_id:
+            case 0: # velocity
+                controller.input_vel = x
+            case 1: # position
+                controller.input_pos = x
+        
+        
 
     def tuner():
         axis_id = UI.axis_select()
@@ -132,6 +149,9 @@ class UI:
             if kb.is_pressed("h"):
                 if con_id is 0:
                     con_config.vel_gain /= 2
+
+            if kb.is_pressed("s"):
+                UI.set_vel_pos(con_id, axis.controller)
 
             if kb.is_pressed("q"):
                 break

@@ -38,7 +38,7 @@ class RoverMotorConfig:
     CAN_BAUD_RATE = 250000
 
 
-    def __init__(self, axis_num, odrv, sensorless = False, _output = True, _force_sensorless = True):
+    def __init__(self, axis_num, odrv = None, sensorless = False, _output = True, _force_sensorless = True, gear_ratio = 3):
         """
         Initalizes RoverMotorConfig class by finding odrive, erase its 
         configuration, and grabbing specified axis object.
@@ -46,9 +46,13 @@ class RoverMotorConfig:
         :param axis_num: Which channel/motor on the odrive your referring to.
         :type axis_num: int (0 or 1)
         """
+
+        self.gear_ratio = gear_ratio
+        self.NUM_POLES *= gear_ratio
+
         self.axis_num = axis_num
         self.axis = None
-        self.odrv = odrv
+        self.odrv = RoverMotorConfig.get_odrive() if odrv is None else odrv
         self.sensorless = sensorless
         self._force_sensorless = _force_sensorless
 
@@ -113,7 +117,7 @@ class RoverMotorConfig:
 
         # The speed of the motor will be limited to this speed in [turns/sec]
         self.axis.controller.config.vel_limit = 50
-        self.axis.motor.config.pole_pairs = RoverMotorConfig.NUM_POLES / 2 # The MN4004 has 24 magnet poles, so 12 pole pairs
+        self.axis.motor.config.pole_pairs = self.NUM_POLES / 2 # The MN4004 has 24 magnet poles, so 12 pole pairs
         # The MN4004 has an idle current of 0.2 A but we set it at 2 for it to go faster during calibration
         self.axis.motor.config.calibration_current = 2
         
@@ -121,7 +125,7 @@ class RoverMotorConfig:
         # to avoid motors from heating up when finding index (ENCODER_INDEX_SEARCH)
         
         # this is specified in the odrive documentation
-        self.axis.motor.config.torque_constant = 8.27 / RoverMotorConfig.MOTOR_KV
+        self.axis.motor.config.torque_constant = 8.27 / self.MOTOR_KV
         # self.axis.motor.config.resistance_calib_max_voltage = 0.4 * VBUS_VOLTAGE ****do not use
 
         self.axis.motor.config.motor_type = MOTOR_TYPE_HIGH_CURRENT
@@ -146,7 +150,7 @@ class RoverMotorConfig:
         self.axis.controller.config.vel_integrator_gain = 0.05
 
         # 5 turns_per_sec / (2 * 3.14159265 * NUM_POLES / 2)
-        self.axis.sensorless_estimator.config.pm_flux_linkage = 5.51328895422 / (2 * RoverMotorConfig.NUM_POLES * RoverMotorConfig.MOTOR_KV)
+        self.axis.sensorless_estimator.config.pm_flux_linkage = 5.51328895422 / (2 * self.NUM_POLES * self.MOTOR_KV)
 
     def config_CAN(self, can_axis_id):
         self.odrv.can.config.baud_rate = RoverMotorConfig.CAN_BAUD_RATE
