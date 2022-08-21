@@ -1,6 +1,5 @@
 #!/bin/bash
 
-. /opt/ros/$ROS_DISTRO/setup.sh
 cargo run
 
 # To run the release version
