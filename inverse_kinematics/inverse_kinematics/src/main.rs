@@ -3,16 +3,19 @@ use nalgebra as na;
 use std::f32::consts::PI;
 
 mod plot;
+mod urdf_parser;
 
 fn main() {
-    forward_ik(0.0, 0.0);
+    forward_ik(PI/2.0, 0.0);
     pseudo_inverse(0.0, 0.0);
     plot::graph();
+    urdf_parser::parse();
 }
 
-fn urdf_parser() {
-    unimplemented!("For lenghts of links OR displacements between joints");
-}
+// Geometrical Method for Forward Kinematics
+// theta 2 is relative to theta 1
+// Input - angles of joint
+// Output - position of end-effector
 
 fn forward_ik(theta1: f32, theta2: f32) {
     let c1: f32 = theta1.cos();
@@ -31,6 +34,7 @@ fn forward_ik(theta1: f32, theta2: f32) {
     let y = l1*s1 + l2*s12;
     
     let fwd =  Vector2::new(x, y);
+    println!("Forward IK : {}", fwd);
 }
 
 fn dh_forward_ik() {
@@ -57,9 +61,12 @@ fn pseudo_inverse(theta1: f32, theta2: f32) {
     let j2 = l1*c1 + l2*c12;
     let j3 = l2*c12;
 
-
     let jacobian = na::Matrix2::new(j0, j1, j2, j3);
     let pseudo_inverse_jacobian = jacobian.singular_values();
-    println!("pinv {}", pseudo_inverse_jacobian);
+    // println!("pinv {}", pseudo_inverse_jacobian);
+}
 
-}   
+// Analytical Inverse Kinematic Solution
+fn inverse_ik(x:f32, y:f32) {
+    todo!();
+}
