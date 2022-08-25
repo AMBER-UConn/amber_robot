@@ -9,7 +9,8 @@ fn main() {
     forward_ik(PI/2.0, 0.0);
     pseudo_inverse(0.0, 0.0);
     plot::graph();
-    urdf_parser::parse();
+    // urdf_parser::parse();
+    inverse_ik(0.0, 2.0);
 }
 
 // Geometrical Method for Forward Kinematics
@@ -68,5 +69,13 @@ fn pseudo_inverse(theta1: f32, theta2: f32) {
 
 // Analytical Inverse Kinematic Solution
 fn inverse_ik(x:f32, y:f32) {
-    todo!();
+    let l1:f32 = 1.0;
+    let l2:f32 = 1.0;
+    let theta2: f32 = ((x.powi(2) + y.powi(2) - l1.powi(2) - l2.powi(2))/2.0*l1*l2).acos();
+    let theta1:f32 = (y/x).atan() - (l2*(theta2.sin())/(l1 + l2*(theta2.cos())));
+
+    let inv =  Vector2::new(theta1, theta2);
+
+    println!("Inverse IK : {}", inv);
+
 }
