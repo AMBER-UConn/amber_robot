@@ -1,5 +1,3 @@
-use na::Vector2;
-use nalgebra as na;
 use std::f32::consts::PI;
 
 mod plot;

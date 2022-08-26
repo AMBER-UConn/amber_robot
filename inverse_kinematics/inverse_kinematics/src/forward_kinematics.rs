@@ -1,12 +1,11 @@
-use na::Vector2;
 use nalgebra as na;
 
 
 pub fn forward_ik(theta1: f32, theta2: f32) {
     let c1: f32 = theta1.cos();
-    let c2: f32 = theta2.cos();
+    let _c2: f32 = theta2.cos();
     let s1: f32 = theta1.sin();
-    let s2: f32 = theta2.sin();
+    let _s2: f32 = theta2.sin();
 
     let c12: f32 = (theta1+theta2).cos();
     let s12: f32 = (theta1+theta2).sin();
@@ -18,11 +17,11 @@ pub fn forward_ik(theta1: f32, theta2: f32) {
     let x = l1*c1 + l2*c12;
     let y = l1*s1 + l2*s12;
     
-    let fwd =  Vector2::new(x, y);
+    let fwd =  na::Vector2::new(x, y);
     println!("Forward IK : {}", fwd);
 }
 
-pub fn dh_forward_ik() {
+pub fn _dh_forward_ik() {
     // implement the denavit hartenberg parameters
     // multiply the homogenous transformation matrices
     // get forward kinematics values
