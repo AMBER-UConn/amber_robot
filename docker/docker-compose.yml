@@ -1,77 +1,19 @@
 version: '2'
 
-networks:
-  ros:
-    driver: bridge
 
 services:
-  ros-master:
-    platform: linux/arm64
-    image: ros:noetic
-    container_name: ROS
-    command: stdbuf -o L roscore
-    networks:
-      - ros
-    restart: always
 
-  listener:
-    platform: linux/arm64
-    profiles: [ 'no-gui', 'gui' ]
-    image: ros:noetic
-    container_name: ros_listener
-    depends_on:
-      - ros-master
-    environment:
-      - "ROS_MASTER_URI=http://ros-master:11311"
-    command: stdbuf -o L rostopic echo /chatter
-    networks:
-      - ros
-    restart: always
 
-  viz:
-    platform: linux/arm64
-    image: osrf/ros:noetic-desktop-full
-    profiles: ['gui']
-    container_name: ros_visualizer
-    depends_on:
-      - ros-master
-    networks:
-      - ros
-    environment:
-      - "ROS_MASTER_URI=http://ros-master:11311"
-      - "DISPLAY"
-      - "QT_X11_NO_MITSHM=1" #fix some QT bugs
-    #share your user to the container in order to access your x11
-    user: ${UGID}
-
-    volumes:
-      #share your x11 socket and permissions to the container
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - /etc/group:/etc/group:ro
-      - /etc/passwd:/etc/passwd:ro
-      - /etc/shadow:/etc/shadow:ro
-      - /etc/sudoers:/etc/sudoers:ro
-      - /etc/sudoers.d:/etc/sudoers.d:ro
-      # - /home/<your_user>:/home/<your_user>:rw #share your home with write permissions
-    command: rqt
-
-  rust-ros:
-    platform: linux/arm64
-    profiles: ['no-gui', 'gui']
-    #image: kalinkochnev/amber_robot:rust_client-1.0
+  amber:
     build:
       dockerfile: Dockerfile
-    container_name: rust_ros
-    networks:
-      - ros
+    container_name: AMBER
+    #network_mode: host
     environment:
-      - "ROS_MASTER_URI=http://ros-master:11311"
-      - "ROSRUST_MSG_PATH=/opt/ros/noetic/share/std_msgs/"
-    depends_on:
-      - ros-master
+      - DISPLAY=$DISPLAY
     volumes:
       - type: bind
         source: ../rust-client
-        target: /docker-rust-client
-
+        target: /amber-robot
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
     restart: always
