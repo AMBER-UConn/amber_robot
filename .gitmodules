@@ -1,4 +1,4 @@
 [submodule "rust-client/rustodrive"]
 	path = rust-client/rustodrive
 	url = https://github.com/AMBER-UConn/rustodrive
-	branch = feature-gui
+	branch = feature_gui
