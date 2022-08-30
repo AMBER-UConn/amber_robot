@@ -1,6 +1,6 @@
-Denavit Hartenberg Method
-Forward Kinematics
+Denavit Hartenberg Method Forward Kinematics
+Geometrical Forward Kinematics
 Jacobian Matrix
 PseudoInverse Jacobian
-Error
-Increment
+Inverse Jacobian
+Newton Raphson Approximation

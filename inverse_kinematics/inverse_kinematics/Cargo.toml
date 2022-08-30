@@ -9,3 +9,11 @@ edition = "2021"
 nalgebra = "0.31.1"
 plotters = "0.3.3"
 urdf-rs = "0.6.6"
+
+[[bin]]
+name = "inverse_kinematics"
+path = "src/main.rs"
+
+[lib]
+name = "inverse_kinematics"
+path = "src/lib.rs"
