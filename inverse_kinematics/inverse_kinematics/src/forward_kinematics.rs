@@ -1,7 +1,10 @@
 use nalgebra as na;
 
 
-pub fn forward_ik(theta1: f32, theta2: f32) {
+pub fn forward_ik<T>(theta1: f32, theta2: f32) -> na::Vector2<f32> {
+    
+    type Vector2 = na::Vector2<f32>;
+    
     let c1: f32 = theta1.cos();
     let _c2: f32 = theta2.cos();
     let s1: f32 = theta1.sin();
@@ -17,8 +20,11 @@ pub fn forward_ik(theta1: f32, theta2: f32) {
     let x = l1*c1 + l2*c12;
     let y = l1*s1 + l2*s12;
     
-    let fwd =  na::Vector2::new(x, y);
-    println!("Forward IK : {}", fwd);
+    let fwd: Vector2 =  Vector2::new(x, y);
+    // println!("Forward : {} {}", fwd.x, fwd.y);
+    // println!("Forward IK : {}", fwd);
+
+    return fwd
 }
 
 pub fn _dh_forward_ik() {
