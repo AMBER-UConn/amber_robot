@@ -1,18 +1,14 @@
 use nalgebra as na;
-use na::{Const, Matrix, ArrayStorage};
+use na::Vector2;
 
+use crate::inverse_kinematics;
 use crate::forward_kinematics;
 
-// static l1:u32 = get_lengths().index.0;
-// static l2:u32 = get_lengths().index.1;
 
-
-// fn get_lengths() -> u32 {
-//     return 1.0 as u32
-// }
-
-// Closed Form Solution / Analytical Solution
-pub fn inverse_ik<T>(x:f32, y:f32) -> na::Vector2<f32>
+/// Closed Form Solution or Analytical Solution
+/// Uses Inverse Trigonometry
+/// 
+pub fn inverse_ik<T>(x:f32, y:f32) -> Vector2<f32>
 {   
     type Vector2 = na::Vector2<f32>;
     println!("inputs = {} {}", x, y);
@@ -52,4 +48,30 @@ pub fn _pseudo_inverse(theta1: f32, theta2: f32) {
 
     let jacobian = na::Matrix2::new(j0, j1, j2, j3);
     let _pseudo_inverse_jacobian = jacobian.singular_values();
+}
+
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+    use rand::Rng;
+
+    #[test]
+    fn test_inverse_kinematics() {
+        let mut rng = rand::thread_rng();
+        let n: i16 = 5000;
+        // assert_eq!(add(1, 2), 3);
+
+        let x = 2.0*(rng.gen::<f32>());
+        let y = 2.0*(rng.gen::<f32>());
+        let theta = inverse_kinematics::inverse_ik::<f32>(x, y);
+        let coordinates = forward_kinematics::forward_ik::<f32>(theta.x, theta.y);
+    }
+
+    #[test]
+    fn test_bad_add() {
+        // This assert would fire and test will fail.
+        // Please note, that private functions can be tested too!
+        // assert_eq!(bad_add(1, 2), 3);
+    }
 }

@@ -21,6 +21,4 @@ fn main() {
     let coordinates = forward_kinematics::forward_ik::<f32>(theta.x, theta.y);
     println!("Coordinates: {}", coordinates);
 
-
-
 }
