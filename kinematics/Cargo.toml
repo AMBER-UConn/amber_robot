@@ -10,6 +10,7 @@ nalgebra = "0.31.1"
 plotters = "0.3.3"
 urdf-rs = "0.6.6"
 rand = "0.8.4"
+flo_curves = "0.6.1"
 
 [[bin]]
 name = "inverse_kinematics"
