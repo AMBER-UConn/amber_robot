@@ -14,7 +14,7 @@ pub fn controller(odrives: ODriveGroup) {
     for (_id, gamepad) in gilrs.gamepads() {
         println!("{} is {:?}", gamepad.name(), gamepad.power_info());
     }
-    let mut speed = 0.0;
+    let mut speed: f32 = 0.0;
 
     let mut active_gamepad = None;
     
@@ -35,12 +35,26 @@ pub fn controller(odrives: ODriveGroup) {
             }
 
             if gamepad.is_pressed(Button::DPadUp) {
-                let b: Vec<Success<()>> = odrives.all_axes(|ax| ax.motor.set_input_vel(10.0)).unwrap_all();
+                speed = speed.abs();
             }
 
             if gamepad.is_pressed(Button::DPadDown) {
-                let b: Vec<Success<()>> = odrives.all_axes(|ax| ax.motor.set_input_vel(-10.0)).unwrap_all();
+                speed = -speed.abs();
             }
+            
+            if gamepad.is_pressed(Button::DPadRight) {
+                speed = speed + (1.0/60.0);
+            }
+            
+            if gamepad.is_pressed(Button::DPadLeft) {
+                speed = speed - (1.0/60.0);
+            }
+
+            if gamepad.is_pressed(Button::East) {
+                speed = 0.0;
+            }
+
+            let b: Vec<Success<()>> = odrives.all_axes(|ax| ax.motor.set_input_vel(speed)).unwrap_all();
 
 
     }
