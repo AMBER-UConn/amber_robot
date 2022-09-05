@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="2dof_leg_module_v3">
+  <mujoco>
+    <compiler meshdir="../meshes/" balanceinertia="true" discardvisual="false"/>
+  </mujoco>
+  <link
+    name="hip_module">
+    <inertial>
+      <origin
+        xyz="-0.0135872417794477 0.00419665468565325 -0.0185249720276986"
+        rpy="0 0 0" />
+      <mass
+        value="0.0938334172894058" />
+      <inertia
+        ixx="1.46634528569586E-05"
+        ixy="1.02326144382057E-05"
+        ixz="-7.7018336582582E-08"
+        iyy="0.000157483495316331"
+        iyz="6.78740712115125E-09"
+        izz="0.000152202454585631" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://2dof_leg_module_v3/meshes/hip_module.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://2dof_leg_module_v3/meshes/hip_module.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="upper_leg">
+    <inertial>
+      <origin
+        xyz="-0.0578208195636141 -0.0212739250328726 -0.0555577921645933"
+        rpy="0 0 0" />
+      <mass
+        value="0.094277083667373" />
+      <inertia
+        ixx="8.19279303589027E-05"
+        ixy="-7.26529131974399E-06"
+        ixz="-6.98506331572851E-05"
+        iyy="0.000159785167856354"
+        iyz="-6.99467251943385E-06"
+        izz="8.72625226077833E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://2dof_leg_module_v3/meshes/upper_leg.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://2dof_leg_module_v3/meshes/upper_leg.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="hip_joint"
+    type="continuous">
+    <origin
+      xyz="0.066577 -0.011968 -0.0185"
+      rpy="0 0 0" />
+    <parent
+      link="hip_module" />
+    <child
+      link="upper_leg" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="lower_leg">
+    <inertial>
+      <origin
+        xyz="0.047875486284217 -0.0138955733287597 -0.0466193127886608"
+        rpy="0 0 0" />
+      <mass
+        value="0.0374009758334682" />
+      <inertia
+        ixx="5.04189375716838E-05"
+        ixy="1.3994879750165E-06"
+        ixz="4.99489822029058E-05"
+        iyy="0.000102550238222013"
+        iyz="-1.36276953731254E-06"
+        izz="5.30753304664563E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://2dof_leg_module_v3/meshes/lower_leg.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://2dof_leg_module_v3/meshes/lower_leg.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="knee_joint"
+    type="continuous">
+    <origin
+      xyz="-0.11534 -0.0324 -0.11089"
+      rpy="0 0 0" />
+    <parent
+      link="upper_leg" />
+    <child
+      link="lower_leg" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+</robot>
