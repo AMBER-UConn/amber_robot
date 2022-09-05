@@ -1,2 +1,6 @@
-rosrust
-.vscode
+rosrust/
+.vscode/
+.history/
+target/
+
+*.pyc
