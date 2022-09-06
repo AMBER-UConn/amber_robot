@@ -17,7 +17,7 @@ fn init_motors(odrv: &ODriveGroup) {
 }
 
 fn odrive_main(can_read_write: ReadWriteCANThread) {
-    let odrives = ODriveGroup::new(can_read_write, &[0, 1, 2, 3, 4, 5]);
+    let odrives = ODriveGroup::new(can_read_write, &[0, 1]);
 
     //init_motors(&odrives);
 
