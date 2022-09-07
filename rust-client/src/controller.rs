@@ -47,25 +47,23 @@ pub fn controller(odrives: ODriveGroup) {
 
 
 
-            if gamepad.is_pressed(Button::South) { //pos
+            if gamepad.is_pressed(Button::South) { //South Button - POSITION MODE 
                 let aaa: Vec<Success<()>> = odrives.all_axes(|ax| ax.motor.set_control_mode(ControlMode::PositionControl, InputMode::PosFilter)).unwrap_all();
                 println!("POSITION CONTROL!");
                 is_vel = false;
             }
 
-            if gamepad.is_pressed(Button::West) { //vel
+            if gamepad.is_pressed(Button::West) { //West Button - VELOCITY MODE
                 let aaa: Vec<Success<()>> = odrives.all_axes(|ax| ax.motor.set_control_mode(ControlMode::VelocityControl, InputMode::VelRamp)).unwrap_all();
                 println!("VELOCITY CONTROL!");
                 is_vel = true;
             }
             
-            
-            if gamepad.is_pressed(Button::North){
+            if gamepad.is_pressed(Button::North){ //North Button - CLOSED LOOP
                 println!("Closed Loop!");
                 let aaa: Vec<Success<()>> = odrives.all_axes(|ax| ax.set_state(ClosedLoop)).unwrap_all();
             }
             
-
             if is_vel {
                 if gamepad.is_pressed(Button::DPadUp) {
                     speed = speed.abs();
@@ -87,17 +85,23 @@ pub fn controller(odrives: ODriveGroup) {
                     set_speed(&odrives, speed);
                 }
 
-                if gamepad.is_pressed(Button::East) {
+                if gamepad.is_pressed(Button::East) { //EAST Button sets velocity to 0
                     speed = 0.0;
                     set_speed(&odrives, speed);
                 }
             }
+            
+            //println!("{}", is_vel);
 
             //if !is_vel {
                 let ls_x = gamepad.value(Axis::LeftStickX);
                 let ls_y = gamepad.value(Axis::LeftStickY);
-                let mut ls_rad = (ls_y / ls_x).atan();
-                
+
+                let mut ls_rad = (0.0 as f32).atan();
+                if ls_x != 0.0{
+                    ls_rad = (ls_y / ls_x).atan();
+                }
+
 
                 if check_neg(ls_x) && check_neg(ls_y) { //3rd q
                     ls_rad += PI;
@@ -111,7 +115,7 @@ pub fn controller(odrives: ODriveGroup) {
 
                 let mut ls_deg = ls_rad * (180.0/PI);
 
-                println!("LS: {}   {}", ls_deg, ls_x);  
+                println!("LS: {}   {}   {}", ls_deg, ls_x, ls_y);  
 
                 let mut ls_rot = ls_deg / 360.0;
 
