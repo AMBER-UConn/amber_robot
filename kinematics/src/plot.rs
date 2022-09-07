@@ -1,5 +1,6 @@
 use plotters::prelude::*;
-use crate::path_gen::{self, walk_curve};
+// use crate::{path_gen::{self, walk_curve}, bezier};
+use crate::bezier;
 
 
 pub fn graph() {
@@ -33,14 +34,13 @@ pub fn curve_plot() {
     .caption("Bezier Curve", ("Arial", 30))
     .set_label_area_size(LabelAreaPosition::Bottom, 40)
     .set_label_area_size(LabelAreaPosition::Left, 40)
-    .build_cartesian_2d(0..15, 0..15)
+    .build_cartesian_2d(0..40, 0..40)
     .unwrap();
 
     chart.configure_mesh().draw().unwrap();
 
-
   chart.draw_series(
-    LineSeries::new((0..100).map(|x| (x, 100 - x)), &BLACK),
+    LineSeries::new((0..=10).map(|t:f32| (bezier::curve(t).0, bezier::curve(t).1)), &RED),
   ).unwrap();
 
   
