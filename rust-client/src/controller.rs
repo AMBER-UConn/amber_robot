@@ -48,7 +48,7 @@ pub fn controller(odrives: ODriveGroup) {
 
 
             if gamepad.is_pressed(Button::South) { //South Button - POSITION MODE 
-                let aaa: Vec<Success<()>> = odrives.all_axes(|ax| ax.motor.set_control_mode(ControlMode::PositionControl, InputMode::PosFilter)).unwrap_all();
+                let aaa: Vec<Success<()>> = odrives.all_axes(|ax| ax.motor.set_control_mode(ControlMode::PositionControl, InputMode::Passthrough)).unwrap_all();
                 println!("POSITION CONTROL!");
                 is_vel = false;
             }
