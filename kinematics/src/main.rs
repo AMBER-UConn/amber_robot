@@ -1,5 +1,4 @@
 use std::f32::consts::PI;
-
 use path_gen::walk_curve;
 
 mod plot;
@@ -23,7 +22,4 @@ fn main() {
     // let theta = inverse_kinematics::inverse_ik::<f32>(1.414, 0.899);
     // let coordinates = forward_kinematics::forward_ik::<f32>(theta.x, theta.y);
     // println!("Coordinates: {}", coordinates);
-
-    walk_curve()
-
 }

@@ -1,8 +1,9 @@
 use nalgebra as na;
 use na::Vector2;
 
-use crate::inverse_kinematics;
-use crate::forward_kinematics;
+
+// use crate::inverse_kinematics;
+// use crate::forward_kinematics;
 
 
 /// Closed Form Solution or Analytical Solution
@@ -53,19 +54,20 @@ pub fn _pseudo_inverse(theta1: f32, theta2: f32) {
 #[cfg(test)]
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
-    use super::*;
+    use crate::inverse_kinematics;
+    use crate::forward_kinematics;
     use rand::Rng;
 
     #[test]
     fn test_inverse_kinematics() {
         let mut rng = rand::thread_rng();
-        let n: i16 = 5000;
+        let _n: i16 = 5000;
         // assert_eq!(add(1, 2), 3);
 
         let x = 2.0*(rng.gen::<f32>());
         let y = 2.0*(rng.gen::<f32>());
         let theta = inverse_kinematics::inverse_ik::<f32>(x, y);
-        let coordinates = forward_kinematics::forward_ik::<f32>(theta.x, theta.y);
+        let _coordinates = forward_kinematics::forward_ik::<f32>(theta.x, theta.y);
     }
 
     #[test]
