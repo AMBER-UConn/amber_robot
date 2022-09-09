@@ -30,13 +30,14 @@ pub fn walk_curve() -> Curve<Coord2>    {
     return curve
 }
 
-pub fn decasteljau(t: i32, coefs: Vec<f64>) -> f64 {
-    let beta = coefs.clone();
-    let n = beta.len();
+pub fn decasteljau(t: f64, coefs: &Vec<(f64, f64)>) -> (f64, f64) {
+    let mut points = coefs.clone();
+    let n = points.len();
     for j in 1..n {
         for k in 0..(n-j) {
-            beta[k] = beta[k]*((1-t) as f64) + beta[k+1]*(t as f64);
+            points[k].0 = points[k].0*(1.0-t) + points[k+1].0*t;
+            points[k].1 = points[k].1*(1.0-t) + points[k+1].1*t;
         }
     }
-    return beta[0];
+    return points[0];
 }
