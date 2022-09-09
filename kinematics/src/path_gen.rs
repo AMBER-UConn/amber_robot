@@ -31,10 +31,7 @@ pub fn walk_curve() -> Curve<Coord2>    {
 }
 
 pub fn decasteljau(t: i32, coefs: Vec<f64>) -> f64 {
-    let beta = vec![];
-    for i in 0..coefs.len() {
-        beta[i] = coefs[i];
-    }
+    let beta = coefs.clone();
     let n = beta.len();
     for j in 1..n {
         for k in 0..(n-j) {
