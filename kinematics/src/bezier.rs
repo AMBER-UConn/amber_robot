@@ -1,6 +1,6 @@
 use nalgebra as na;
 
-struct Bezier {
+pub struct Bezier {
     p0: na::Vector2<f32>,
     p1: na::Vector2<f32>,
     p2: na::Vector2<f32>,
