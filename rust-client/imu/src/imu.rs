@@ -144,6 +144,19 @@ mod tests {
         assert!(actual_output == test_output);
 
     }
+
+    fn test_angle(){
+        let test_result: [u8; 9] = [47, 0, 192, 10, 201, 207, 197, 70, 68];
+        
+        let actual_output = IMU::result_parser(test_result, Some(180.0));
+
+        let test_output: [f32; 3] = [0.2581787, 15.1171875, -67.802124];
+
+        
+        assert!(actual_output == test_output);
+
+    }
+
 }
 
 
