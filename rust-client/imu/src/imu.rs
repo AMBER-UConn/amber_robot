@@ -40,11 +40,13 @@ impl IMU {
         let mut byte_read = [0u8; 1];
         loop {
             while byte_read[0] != 0x55 {
-                // Requests buffer info from imu and writes it to output variable
+                // Keeps reading IMU data until it hits 0x55, the start of the data
                 self.port.read_exact(&mut byte_read).expect("Failed to read!");
             }
+            // Checks the next byte after 0x55; the data_type of the data
             self.port.read_exact(&mut byte_read);
 
+            // Checks if the data_type is what we want, and breaks from loop if it is
             if byte_read[0] == *data_type {break;}
         }
         let mut reading = [0u8; 9]; 
@@ -125,6 +127,25 @@ impl IMU {
 }
 
 
+#[cfg(test)]
+mod tests {
+    use super::IMU;
+
+    #[test]
+    fn test_angl_vel(){
+        let test_result: [u8; 9] = [10, 0, 247, 255, 0, 0, 247, 9, 167];
+        //let test_input: [u8; 11] = [0x55, 0x52, 10, 0, 247, 255, 0, 0, 247, 9, 167];
+        
+        let actual_output = IMU::result_parser(test_result, Some(2000.0));
+        
+        let test_output: [f32; 3] = [0.61035156, -0.5493164, 0.0];
+
+
+        assert!(actual_output == test_output);
+
+    }
+}
+
 
 pub fn test() {
     //let mut port = serialport::new("/dev/ttyUSB0", 9600)
@@ -146,7 +167,6 @@ pub fn test() {
         println!("{:?}", imu.angular_velocity());
         println!("ANGLE (ROLL PITCH YAW):");
         println!("{:?}", imu.angle());
-
 
     }
 }
