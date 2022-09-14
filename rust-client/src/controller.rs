@@ -22,6 +22,10 @@ pub fn controller(odrives: ODriveGroup) {
 
     let mut active_gamepad = None;
     
+
+    let mut _last_deg = 0.0;
+    let mut rotations = 0.0;
+
     loop {
         // Examine new events
         while let Some(Event { id, event, time }) = gilrs.next_event() {
@@ -37,6 +41,22 @@ pub fn controller(odrives: ODriveGroup) {
                 return (a == a.abs()).not();
             }
 
+            fn get_quadrant(deg: f32) -> i8 {
+                if deg >= 0.0 && deg <= 90.0 {
+                    return 1;
+                }
+                else if deg >= 90.0 && deg <= 180.0 {
+                    return 2;
+                }
+                else if deg >= 180.0 && deg <= 270.0 {
+                    return 3;
+                }
+                else if deg >= 270.0 && deg <= 360.0 {
+                    return 4;
+                }
+                else {1}
+            }
+
             fn set_speed(odrives: &ODriveGroup, sp: f32) -> () {
                 let b: Vec<Success<()>> = odrives.all_axes(|ax| ax.motor.set_input_vel(sp)).unwrap_all();
             }
@@ -47,24 +67,24 @@ pub fn controller(odrives: ODriveGroup) {
 
 
 
-            if gamepad.is_pressed(Button::South) { //South Button - POSITION MODE 
+            is_vel = if gamepad.is_pressed(Button::South) { //South Button - POSITION MODE 
                 let aaa: Vec<Success<()>> = odrives.all_axes(|ax| ax.motor.set_control_mode(ControlMode::PositionControl, InputMode::Passthrough)).unwrap_all();
                 println!("POSITION CONTROL!");
-                is_vel = false;
-            }
+                false
+            } else {is_vel};
 
-            if gamepad.is_pressed(Button::West) { //West Button - VELOCITY MODE
+            is_vel = if gamepad.is_pressed(Button::West) { //West Button - VELOCITY MODE
                 let aaa: Vec<Success<()>> = odrives.all_axes(|ax| ax.motor.set_control_mode(ControlMode::VelocityControl, InputMode::VelRamp)).unwrap_all();
                 println!("VELOCITY CONTROL!");
-                is_vel = true;
-            }
+                true
+            } else {is_vel};
             
             if gamepad.is_pressed(Button::North){ //North Button - CLOSED LOOP
                 println!("Closed Loop!");
                 let aaa: Vec<Success<()>> = odrives.all_axes(|ax| ax.set_state(ClosedLoop)).unwrap_all();
             }
             
-            if is_vel {
+            if is_vel { // Velocity Mode
                 if gamepad.is_pressed(Button::DPadUp) {
                     speed = speed.abs();
                     set_speed(&odrives, speed);
@@ -93,7 +113,7 @@ pub fn controller(odrives: ODriveGroup) {
             
             //println!("{}", is_vel);
 
-            //if !is_vel {
+            if !is_vel { // Position Mode
                 let ls_x = gamepad.value(Axis::LeftStickX);
                 let ls_y = gamepad.value(Axis::LeftStickY);
 
@@ -115,12 +135,21 @@ pub fn controller(odrives: ODriveGroup) {
 
                 let mut ls_deg = ls_rad * (180.0/PI);
 
-                println!("LS: {}   {}   {}", ls_deg, ls_x, ls_y);  
+                if get_quadrant(_last_deg) == 4 && get_quadrant(ls_deg) == 1 { // e.g. Going from 360 to 0
+                    rotations += 1.0;
+                }
+                else if get_quadrant(_last_deg) == 1 && get_quadrant(ls_deg) == 4 { // e.g. 0 to 360
+                    rotations -= 1.0;
+                }
 
-                let mut ls_rot = ls_deg / 360.0;
+                println!("LS: {}   {}   {}", ls_deg + rotations*360.0, ls_x, ls_y);  
+
+                let mut ls_rot = (ls_deg / 360.0) + rotations;
 
                 set_pos(&odrives, ls_rot);
-            //}
+
+                _last_deg = ls_deg;
+            }
             
             
                       
