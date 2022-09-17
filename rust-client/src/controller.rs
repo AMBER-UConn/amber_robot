@@ -113,13 +113,17 @@ pub fn controller(odrives: ODriveGroup) {
             
             //println!("{}", is_vel);
 
-            if !is_vel { // Position Mode
+            let factor = 1.0;
+            //if !is_vel { // Position Mode
                 let ls_x = gamepad.value(Axis::LeftStickX);
                 let ls_y = gamepad.value(Axis::LeftStickY);
 
                 let mut ls_rad = (0.0 as f32).atan();
                 if ls_x != 0.0{
                     ls_rad = (ls_y / ls_x).atan();
+                }
+                else {
+                    continue;
                 }
 
 
@@ -136,10 +140,10 @@ pub fn controller(odrives: ODriveGroup) {
                 let mut ls_deg = ls_rad * (180.0/PI);
 
                 if get_quadrant(_last_deg) == 4 && get_quadrant(ls_deg) == 1 { // e.g. Going from 360 to 0
-                    rotations += 1.0;
+                    rotations += 1.0 * factor;
                 }
                 else if get_quadrant(_last_deg) == 1 && get_quadrant(ls_deg) == 4 { // e.g. 0 to 360
-                    rotations -= 1.0;
+                    rotations -= 1.0 * factor;
                 }
 
                 println!("LS: {}   {}   {}", ls_deg + rotations*360.0, ls_x, ls_y);  
@@ -149,7 +153,7 @@ pub fn controller(odrives: ODriveGroup) {
                 set_pos(&odrives, ls_rot);
 
                 _last_deg = ls_deg;
-            }
+            //}
             
             
                       
