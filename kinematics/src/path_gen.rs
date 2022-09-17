@@ -30,7 +30,7 @@ pub fn walk_curve() -> Curve<Coord2>    {
     return curve
 }
 
-pub fn decasteljau(t: f64, coefs: &Vec<(f64, f64)>) -> (f64, f64) {
+pub fn decasteljau(t: f32, coefs: &Vec<(f32, f32)>) -> (f32, f32) {
     let mut points = coefs.clone();
     let n = points.len();
     for j in 1..n {
@@ -40,4 +40,57 @@ pub fn decasteljau(t: f64, coefs: &Vec<(f64, f64)>) -> (f64, f64) {
         }
     }
     return points[0];
+}
+
+/*
+* S = step length
+* H = step height
+* Tm = period of flight phase and stand phase
+* Te = period of swing-back movement and retraction movement of flight phase
+* Tn = main motion period of removal of swing-back and retraction of flight phase
+*
+* Tm = Tn + 2Te
+* Te and Tn ARE NOT USED IN THIS VERSION
+*/
+pub fn new_eq(S: f32, H: f32, Tm: f32, t: f32) -> (f32, f32) {
+    let mut x = 0.0;
+    let mut y = 0.0;
+    let val: f32 = 6.28*(t/Tm);
+    
+    x = (S * ((t/Tm)-((1.0/(6.28))*val.sin()))) - (S/2.0);
+
+    if t < (Tm/2.0) {
+        y = (2.0*H) * ((t/Tm) - ((1.0/12.56)*(2.0*val).sin()));
+    } else {
+        y = (2.0*H) * (1.0 - (t/Tm) - ((1.0/12.56)*(2.0*val).sin()));
+    }
+
+    println!("{},{}",x,y);
+    return (x,y)
+}
+
+pub fn new_eq_2(S: f32, H: f32, Tm: f32, Te: f32, Tn: f32, t: f32) -> (f32, f32) {
+    let mut x: f32 = 0.0;
+    let mut y: f32 = 0.0;
+    let val: f32 = 6.28*((t-Te)/Tn);
+    let C2: f32 = 400.0;
+    let C3: f32 = 4.0;
+    let start_val = ((S*Te)/(6.28*Tm)) * (3.14 as f32).sin();
+
+    if t <= Te {
+        x = -1.0*start_val - (S/(2.0*Te)) + C2;
+    } else if t <= (Te + Tn) {
+        x = (S * (((t-Te)/Tn)-((1.0/(6.28))*val.sin()))) - (S/2.0);
+    } else {
+        x = start_val*((t-Te-Tn)/Te) - ((S/(2.0*Tm))*(t-Te-Tn)) + C3;
+    }
+
+    if t < (Tm/2.0) {
+        y = (2.0*H) * ((t/Tm) - ((1.0/12.56)*(2.0*val).sin()));
+    } else {
+        y = (2.0*H) * (1.0 - (t/Tm) - ((1.0/12.56)*(2.0*val).sin()));
+    }
+
+    println!("{},{}",x,y);
+    return (x,y)
 }

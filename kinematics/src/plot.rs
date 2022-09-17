@@ -40,7 +40,7 @@ pub fn curve_plot() {
     
     let coefs = vec![(-170.0, -470.0), (-240.0, -470.0), (-300.0, -360.0), (-300.0, -360.0), 
                                             (-300.0, -360.0), (0.0, -360.0), (0.0, -360.0), (0.0, -320.0), 
-                                            (300.0, -320.0), (300.0, -320.0), (240.0, -470.0), (170.0, -470.0), (-170.0, -470.0)];
+                                            (300.0, -320.0), (300.0, -320.0), (240.0, -470.0), (170.0, -470.0), (170.0, -500.0), (0.0, -500.0), (-170.0, -470.0)];
     // let coefs = vec![(100.0, 500.0), (400.0, 2000.0), (1500.5, 1200.0), (1400.0, 900.0)];
 
     chart
@@ -49,8 +49,16 @@ pub fn curve_plot() {
                 (
                     // bezier::curve(t as f32 / num_steps as f32).0,
                     // bezier::curve(t as f32 / num_steps as f32).1,
-                    path_gen::decasteljau(t as f64 / num_steps as f64, &coefs).0 as f32,
-                    path_gen::decasteljau(t as f64 / num_steps as f64, &coefs).1 as f32,
+
+                    // path_gen::decasteljau(t as f32 / num_steps as f32, &coefs).0,
+                    // path_gen::decasteljau(t as f32 / num_steps as f32, &coefs).1,
+
+                    // path_gen::new_eq(300.0, 100.0, num_steps as f32, t as f32).0,
+                    // path_gen::new_eq(300.0, 100.0, num_steps as f32, t as f32).1
+                    
+                    // Tm = Tn + 2Te
+                    path_gen::new_eq_2(300.0, 100.0, num_steps as f32, 40.0, 20.0, t as f32).0,
+                    path_gen::new_eq_2(300.0, 100.0, num_steps as f32, 40.0, 20.0, t as f32).1
                 )
             }),
             &RED,
