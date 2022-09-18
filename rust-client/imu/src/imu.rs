@@ -11,12 +11,9 @@ pub struct IMU {
 impl IMU {
 
 
-    pub fn new(port_path: Option<&str>, baud_rate: Option<u32>) -> IMU {
-        let p = port_path.unwrap_or("/dev/ttyUSB0");
-        let b_r = baud_rate.unwrap_or(9600);
-
+    pub fn new(port_path: &str, baud_rate: &u32) -> IMU {
         IMU {
-            port: serialport::new(p, b_r)
+            port: serialport::new(port_path, *baud_rate)
                   .timeout(Duration::from_millis(1000))
                   .open()
                   .expect("Failed to open port"),
@@ -145,6 +142,7 @@ mod tests {
 
     }
 
+    #[test]
     fn test_angle(){
         let test_result: [u8; 9] = [47, 0, 192, 10, 201, 207, 197, 70, 68];
         
@@ -157,29 +155,4 @@ mod tests {
 
     }
 
-}
-
-
-pub fn test() {
-    //let mut port = serialport::new("/dev/ttyUSB0", 9600)
-    //    .timeout(Duration::from_millis(1000))
-    //    .open()
-    //    .expect("Failed to open port");
-
-    let mut imu = IMU::new(None, None);
-
-     loop {
-        // let mut serial_buf: Vec<u8> = vec![0; 32];
-        // port.read(serial_buf.as_mut_slice())
-        //     .expect("Found no data!");
-        // println!("{:?}", serial_buf);
-
-        println!("ACCELERATION:");
-        println!("{:?}", imu.acceleration());
-        println!("ANGULAR VELOCITY:");
-        println!("{:?}", imu.angular_velocity());
-        println!("ANGLE (ROLL PITCH YAW):");
-        println!("{:?}", imu.angle());
-
-    }
 }
