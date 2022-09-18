@@ -1,0 +1,12 @@
+[package]
+name = "imu"
+version = "0.1.0"
+edition = "2021"
+authors = ["Rany <rany.kamel@uconn.edu>", "Blake <blakeapember@gmail.com>", "Kalin <kalin.kochnev@uconn.edu>", "Abhiram <abhiram.gunti@uconn.edu>"]
+license = "MIT"
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serialport = "4.2.0"

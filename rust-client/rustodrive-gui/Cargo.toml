@@ -9,6 +9,7 @@ edition = "2021"
 
 [dependencies]
 rustodrive = { path = "../rustodrive" }
+imu = { path = "../imu" }
 imgui = "0.8.2"
 imgui-winit-support = "0.8.2"
 
