@@ -69,11 +69,4 @@ mod tests {
         let theta = inverse_kinematics::inverse_ik::<f32>(x, y);
         let _coordinates = forward_kinematics::forward_ik::<f32>(theta.x, theta.y);
     }
-
-    #[test]
-    fn test_bad_add() {
-        // This assert would fire and test will fail.
-        // Please note, that private functions can be tested too!
-        // assert_eq!(bad_add(1, 2), 3);
-    }
 }
