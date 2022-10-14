@@ -9,6 +9,9 @@ use rustodrive::{
 };
 use signal_hook::{consts::SIGINT, iterator::Signals};
 use std::{error::Error};
+use kinematics::{
+    inverse_kinematics::inverse_ik_rots
+};
 
 pub mod test_ui;
 

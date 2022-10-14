@@ -12,6 +12,7 @@ edition = "2021"
 # rosrust = "0.9.8"
 rustodrive = { path = "rustodrive" }
 rustodrive-gui = { path = "rustodrive-gui" }
+kinematics = { path = "kinematics" }
 signal-hook = "0.3.14"
 
 # openrr-planner = "0.0.6" # path planning libraru

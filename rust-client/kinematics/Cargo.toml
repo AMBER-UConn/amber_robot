@@ -1,5 +1,5 @@
 [package]
-name = "inverse_kinematics"
+name = "kinematics"
 version = "0.1.0"
 edition = "2021"
 authors = ["Vihaan <vihaan.shah@uconn.edu>", "Abhiram <abhiram.gunti@uconn.edu>"]
@@ -13,10 +13,10 @@ urdf-rs = "0.6.6"
 rand = "0.8.4"
 flo_curves = "0.6.1"
 
-[[bin]]
-name = "inverse_kinematics"
-path = "src/main.rs"
+# [[bin]]
+# name = "kinematics"
+# path = "src/main.rs"
 
-[lib]
-name = "inverse_kinematics"
-path = "src/lib.rs"
+# [lib]
+# name = "kinematics"
+# path = "src/lib.rs"
