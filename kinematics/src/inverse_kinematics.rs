@@ -1,33 +1,42 @@
 use nalgebra as na;
 use na::Vector2;
+use std::f32::consts::PI;
 
 
 // use crate::inverse_kinematics;
 // use crate::forward_kinematics;
 
+const L1:f32 = 1.0;
+const L2:f32 = 1.0;
 
 /// Closed Form Solution or Analytical Solution
 /// Uses Inverse Trigonometry
-/// 
 pub fn inverse_ik<T>(x:f32, y:f32) -> Vector2<f32>
 {   
     type Vector2 = na::Vector2<f32>;
-    println!("inputs = {} {}", x, y);
-    let l1:f32 = 1.0;
-    let l2:f32 = 1.0;
-    let theta2_sol1: f32 = ((x.powi(2) + y.powi(2) - l1.powi(2) - l2.powi(2))/2.0*l1*l2).acos();
-    let theta1_sol1:f32 = (y/x).atan() - (l2*(theta2_sol1.sin())/(l1 + l2*(theta2_sol1.cos()))).atan();
+
+    let theta2_sol1: f32 = ((x.powi(2) + y.powi(2) - L1.powi(2) - L2.powi(2))/2.0*L1*L2).acos();
+    let theta1_sol1:f32 = (y/x).atan() - (L2*(theta2_sol1.sin())/(L1 + L2*(theta2_sol1.cos()))).atan();
     
 
     // let theta2_sol2: f32 = -1.0 * (((x.powi(2) + y.powi(2) - l1.powi(2) - l2.powi(2))/2.0*l1*l2).acos());
     // let theta1_sol2:f32 = (y/x).atan() + (l2*(theta2_sol2.sin())/(l1 + l2*(theta2_sol2.cos()))).atan();
 
-    let inv_sol1: Vector2 = Vector2::new(theta1_sol1, theta2_sol1);
-    // let inv_sol2=  na::Vector2::new(theta1_sol2, theta2_sol2);
+    // let inv_sol_rots: Vector2 = Vector2::new(deg_2_rots(theta1_sol1), deg_2_rots(theta2_sol1));
+    let inv_sol: Vector2 = Vector2::new(theta1_sol1,theta2_sol1);
 
-    // println!("Inverse IK : {}", inv_sol1);
-    // println!("Inverse IK : {}", inv_sol2);
-    return inv_sol1
+    return inverse_ik_rots::<f32>(inv_sol)
+}
+
+pub fn inverse_ik_rots<T>(degrees:Vector2<f32>) -> Vector2<f32> {
+    type Vector2 = na::Vector2<f32>;
+    let inv_sol_rots: Vector2 = Vector2::new(deg_2_rots(degrees.x), deg_2_rots(degrees.y));
+    
+    return inv_sol_rots
+}
+
+fn deg_2_rots(degree:f32) ->f32 {
+    return degree/(2.0*PI)
 }
 
 pub fn _pseudo_inverse(theta1: f32, theta2: f32) {

@@ -21,15 +21,6 @@ pub fn forward_ik<T>(theta1: f32, theta2: f32) -> na::Vector2<f32> {
     let y = l1*s1 + l2*s12;
     
     let fwd: Vector2 =  Vector2::new(x, y);
-    // println!("Forward : {} {}", fwd.x, fwd.y);
-    // println!("Forward IK : {}", fwd);
 
     return fwd
-}
-
-pub fn _dh_forward_ik() {
-    // implement the denavit hartenberg parameters
-    // multiply the homogenous transformation matrices
-    // get forward kinematics values
-    todo!()
 }
