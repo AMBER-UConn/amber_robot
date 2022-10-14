@@ -1,0 +1,8 @@
+prefix=/home/vihaan/Projects/amber/amber_robot/cw/devel
+
+Name: 2dof_leg_module_v3
+Description: Description of 2dof_leg_module_v3
+Version: 1.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

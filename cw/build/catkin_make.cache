@@ -1,0 +1,2 @@
+2dof_leg_module_v3
+-DCATKIN_DEVEL_PREFIX=/home/vihaan/Projects/amber/amber_robot/cw/devel -DCMAKE_INSTALL_PREFIX=/home/vihaan/Projects/amber/amber_robot/cw/install -G Unix Makefiles
