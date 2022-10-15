@@ -1,7 +1,4 @@
 use std::f32::consts::PI;
-use nalgebra::Rotation;
-use path_gen::walk_curve;
-use plotters::coord;
 
 mod plot;
 mod urdf_parser;
@@ -37,5 +34,5 @@ fn main() {
     //     println!("{:?}", path_gen::decasteljau(i, &coefs))
     // }
 
-    // plot::curve_plot();
+    plot::curve_plot();
 }

@@ -28,7 +28,7 @@ pub fn inverse_ik<T>(x:f32, y:f32) -> Vector2<f32>
     return inverse_ik_rots::<f32>(inv_sol)
 }
 
-pub fn inverse_ik_rots<T>(degrees:Vector2<f32>) -> Vector2<f32> {
+fn inverse_ik_rots<T>(degrees:Vector2<f32>) -> Vector2<f32> {
     type Vector2 = na::Vector2<f32>;
     let inv_sol_rots: Vector2 = Vector2::new(deg_2_rots(degrees.x), deg_2_rots(degrees.y));
     
