@@ -1,7 +1,6 @@
 use std::f32::consts::PI;
 
 mod plot;
-mod urdf_parser;
 mod forward_kinematics;
 mod inverse_kinematics;
 mod path_gen;
