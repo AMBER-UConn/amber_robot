@@ -25,15 +25,15 @@ fn init_motors(odrv: &ODriveGroup) {
 
 // TODO update documentation to reflect new changes
 fn odrive_main(can_read_write: ReadWriteCANThread) {
-    let odrives = ODriveGroup::new(can_read_write, &[0, 1, 2, 3, 4, 5]);
+    //let odrives = ODriveGroup::new(can_read_write, &[0, 1, 2, 3, 4, 5]);
 
-    init_motors(&odrives);
+    //init_motors(&odrives);
 
-    odrives.all_axes::<(), _>(|ax| ax.set_state(Idle));
-    let heartbeat: Vec<Success<Heartbeat>> = odrives.all_axes(|ax| ax.get_heartbeat()).unwrap_all();
+    //odrives.all_axes::<(), _>(|ax| ax.set_state(Idle));
+    //let heartbeat: Vec<Success<Heartbeat>> = odrives.all_axes(|ax| ax.get_heartbeat()).unwrap_all();
     //let heartbeat: Success<Heartbeat> = odrives.axis(&1, |ax| ax.get_heartbeat()).unwrap();
 
-    let temp: Vec<Success<Temperature>> = odrives.all_axes(|ax| ax.get_temperatures()).unwrap_all();
+    //let temp: Vec<Success<Temperature>> = odrives.all_axes(|ax| ax.get_temperatures()).unwrap_all();
 
     type Vector2 = na::Vector2<f32>;
     let mut rotations: Vector2;
@@ -41,9 +41,10 @@ fn odrive_main(can_read_write: ReadWriteCANThread) {
         rotations = bez_curve_ik(x as f32 / 100.0); // calls selected bezier curve, returns a Vector
         // send rotations.x to hip joint
         // send rotations.y to knee joint
+        println!("{:?}, {}", rotations, x as f32 / 100.0);
     }
 
-    println!("hb: {:?}\n temp: {:?}", heartbeat, temp);
+    //println!("hb: {:?}\n temp: {:?}", heartbeat, temp);
 
 }
 
