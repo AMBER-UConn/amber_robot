@@ -31,7 +31,7 @@ pub fn curve_plot() {
         .caption("Bezier Curve", ("Arial", 30))
         .set_label_area_size(LabelAreaPosition::Bottom, 40)
         .set_label_area_size(LabelAreaPosition::Left, 40)
-        .build_cartesian_2d(-10f32..10f32, -10f32..10f32)
+        .build_cartesian_2d(-20f32..20f32, -20f32..20f32)
         .unwrap();
 
     chart.configure_mesh().draw().unwrap();

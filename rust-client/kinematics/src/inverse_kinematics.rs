@@ -6,25 +6,31 @@ use std::f32::consts::PI;
 // use crate::inverse_kinematics;
 // use crate::forward_kinematics;
 
-const L1:f32 = 1.0;
-const L2:f32 = 1.0;
 
 /// Closed Form Solution or Analytical Solution
 // Uses Inverse Trigonometry
 pub fn inverse_ik<T>(x:f32, y:f32) -> Vector2<f32>
 {   
+    let l1:f32 = 18.1349;
+    let l2:f32 = 17.35;
     type Vector2 = na::Vector2<f32>;
 
-    let theta2_sol1: f32 = ((x.powi(2) + y.powi(2) - L1.powi(2) - L2.powi(2))/2.0*L1*L2).acos();
-    let theta1_sol1:f32 = (y/x).atan() - (L2*(theta2_sol1.sin())/(L1 + L2*(theta2_sol1.cos()))).atan();
-    
+    let theta2_sol1: f32 = ((x.powi(2) + y.powi(2) - l1.powi(2) - l2.powi(2))/(2.0*l1*l2)).acos();
+    let theta1_sol1:f32 = (y/x).atan() - (l2*(theta2_sol1.sin())/(l1 + l2*(theta2_sol1.cos()))).atan();
 
+
+    // println!("x square is {}", x.powi(2));
+    // println!("y square is {}", y.powi(2));
+    // println!("-l1 square is {}", -l1.powi(2));
+    // println!("-l2 square is {}", -l2.powi(2));
+    // println!("2l1l2 is {}", 2.0*l1*l2);
+    // println!("num {}", (x.powi(2) + y.powi(2) - l1.powi(2) - l2.powi(2)));
+    // println!("total is {}", (x.powi(2) + y.powi(2) - l1.powi(2) - l2.powi(2))/(2.0*l1*l2));
     // let theta2_sol2: f32 = -1.0 * (((x.powi(2) + y.powi(2) - l1.powi(2) - l2.powi(2))/2.0*l1*l2).acos());
     // let theta1_sol2:f32 = (y/x).atan() + (l2*(theta2_sol2.sin())/(l1 + l2*(theta2_sol2.cos()))).atan();
 
     // let inv_sol_rots: Vector2 = Vector2::new(deg_2_rots(theta1_sol1), deg_2_rots(theta2_sol1));
     let inv_sol: Vector2 = Vector2::new(theta1_sol1,theta2_sol1);
-
     return inverse_ik_rots::<f32>(inv_sol)
 }
 
@@ -35,6 +41,7 @@ fn inverse_ik_rots<T>(degrees:Vector2<f32>) -> Vector2<f32> {
     return inv_sol_rots
 }
 
+// converts and returns degrees into rotations
 fn deg_2_rots(degree:f32) ->f32 {
     return degree/(2.0*PI)
 }
