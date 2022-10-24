@@ -8,7 +8,7 @@ use rustodrive::{
     state::{AxisState::*, ReadComm::*, WriteComm::*, ControlMode::*, InputMode::*},
 };
 use signal_hook::{consts::SIGINT, iterator::Signals};
-use std::{error::Error};
+use std::{error::Error, process::exit};
 use kinematics::{
     bezier::bez_curve_ik
 };
@@ -25,7 +25,7 @@ fn init_motors(odrv: &ODriveGroup) {
 
 // TODO update documentation to reflect new changes
 fn odrive_main(can_read_write: ReadWriteCANThread) {
-    //let odrives = ODriveGroup::new(can_read_write, &[0, 1, 2, 3, 4, 5]);
+    let odrives = ODriveGroup::new(can_read_write, &[0, 1, 2, 3, 4, 5]);
 
     //init_motors(&odrives);
 
@@ -35,6 +35,13 @@ fn odrive_main(can_read_write: ReadWriteCANThread) {
 
     //let temp: Vec<Success<Temperature>> = odrives.all_axes(|ax| ax.get_temperatures()).unwrap_all();
 
+
+
+    //println!("hb: {:?}\n temp: {:?}", heartbeat, temp);
+
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
     type Vector2 = na::Vector2<f32>;
     let mut rotations: Vector2;
     for x in (0..100).step_by(1) {
@@ -43,12 +50,7 @@ fn odrive_main(can_read_write: ReadWriteCANThread) {
         // send rotations.y to knee joint
         println!("{:?}, {}", rotations, x as f32 / 100.0);
     }
-
-    //println!("hb: {:?}\n temp: {:?}", heartbeat, temp);
-
-}
-
-fn main() -> Result<(), Box<dyn Error>> {
+    std::process::exit(0);
     let mut can_proxy = CANProxy::new("can0");
     can_proxy.register_rw("thread 1", odrive_main);
     let stop_all = can_proxy.begin();
