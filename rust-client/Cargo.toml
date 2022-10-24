@@ -14,6 +14,8 @@ rustodrive = { path = "rustodrive" }
 rustodrive-gui = { path = "rustodrive-gui" }
 kinematics = { path = "kinematics" }
 signal-hook = "0.3.14"
+nalgebra = "0.31.1"
+
 
 # openrr-planner = "0.0.6" # path planning libraru
 # urdf-viz = "0.36.0" # URDF file visualizer

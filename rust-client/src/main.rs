@@ -10,8 +10,11 @@ use rustodrive::{
 use signal_hook::{consts::SIGINT, iterator::Signals};
 use std::{error::Error};
 use kinematics::{
-    inverse_kinematics::inverse_ik_rots
+    bezier::bez_curve_ik
 };
+use nalgebra as na;
+use na::Vector2;
+
 
 pub mod test_ui;
 
@@ -31,6 +34,14 @@ fn odrive_main(can_read_write: ReadWriteCANThread) {
     //let heartbeat: Success<Heartbeat> = odrives.axis(&1, |ax| ax.get_heartbeat()).unwrap();
 
     let temp: Vec<Success<Temperature>> = odrives.all_axes(|ax| ax.get_temperatures()).unwrap_all();
+
+    type Vector2 = na::Vector2<f32>;
+    let mut rotations: Vector2;
+    for x in (0..100).step_by(1) {
+        rotations = bez_curve_ik(x as f32 / 100.0); // calls selected bezier curve, returns a Vector
+        // send rotations.x to hip joint
+        // send rotations.y to knee joint
+    }
 
     println!("hb: {:?}\n temp: {:?}", heartbeat, temp);
 
