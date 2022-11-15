@@ -10,6 +10,7 @@ edition = "2021"
 [dependencies]
 # rosrust_msg = "0.1.4" 
 # rosrust = "0.9.8"
+imu = { path = "imu" }
 rustodrive = { path = "rustodrive/rustodrive", features=["mock-socket"] }
 rustodrive-gui = { path = "rustodrive/gui" }
 signal-hook = "0.3.14"
